@@ -60,7 +60,7 @@ class SimplePlayer(Player):
     It will try to get rid of the most undesirable cards while trying not to win a trick.
     """
 
-    def __init__(self, verbose=False):
+    def __init__(self, verbose=True):
         self.verbose = verbose
         if verbose:
             deck = Deck()

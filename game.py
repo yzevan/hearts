@@ -39,19 +39,7 @@ class Game:
         # Players and their hands are indentified by indices ranging from 0 till 4
 
         # Perform the card passing.
-        # Currently always passes in one direction.
-        # Alternating directions can be implemented later if desirable
-        for i in range(4):
-            for card in self.players[i].pass_cards(self._player_hands[i]):
-                if self.game_nr == 1:
-                    self._player_hands[i].remove(card)
-                    self._player_hands[(i + 1) % 4].append(card)
-                elif self.game_nr == 2:
-                    self._player_hands[i].remove(card)
-                    self._player_hands[(i + 2) % 4].append(card)
-                elif self.game_nr == 3:
-                    self._player_hands[i].remove(card)
-                    self._player_hands[(i + 3) % 4].append(card)
+        self.card_passing()
 
         # Play the tricks
         leading_index = self.player_index_with_two_of_clubs()
@@ -68,6 +56,22 @@ class Game:
                      )
 
         return tuple(self.count_points(self._cards_taken[i]) for i in range(4))
+
+    def card_passing(self):
+        """
+        Perform the card passing.
+        """
+        for i in range(4):
+            for card in self.players[i].pass_cards(self._player_hands[i]):
+                if self.game_nr == 1:
+                    self._player_hands[i].remove(card)
+                    self._player_hands[(i + 1) % 4].append(card)
+                elif self.game_nr == 2:
+                    self._player_hands[i].remove(card)
+                    self._player_hands[(i + 2) % 4].append(card)
+                elif self.game_nr == 3:
+                    self._player_hands[i].remove(card)
+                    self._player_hands[(i + 3) % 4].append(card)
 
     def play_trick(self, leading_index, trick_nr):
         """

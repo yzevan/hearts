@@ -22,7 +22,7 @@ class Suit(OrderedEnum):
             # They don't work for 1252 of utf8
             return [chr(5), chr(4), chr(6), chr(3)][self.value]
         else:
-            return [' of clubs', ' of diamonds', ' of spades', ' of hearts'][self.value]
+            return ['C', 'D', 'S', 'H'][self.value]
 
 
 class Rank(OrderedEnum):
