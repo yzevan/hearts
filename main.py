@@ -15,8 +15,8 @@ for match_nr in range(nr_of_matches):
     game_nr = 0
     print('MATCH {}'.format(match_nr))
     while(max(scores) < 100):
-        print('GAME {}'.format(game_nr))
         game_nr += 1
-        game = Game(players, verbose=True)
+        print('GAME {}'.format(game_nr))
+        game = Game(players, game_nr % 4, verbose=True)
         scores = tuple(sum(x) for x in zip(scores, game.play()))
     print(scores)

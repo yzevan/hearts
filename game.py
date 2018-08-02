@@ -4,7 +4,7 @@ from rules import is_card_valid, card_points
 
 class Game:
 
-    def __init__(self, players, verbose=False):
+    def __init__(self, players, game_nr, verbose=False):
         """
         players is a list of four players
         """
@@ -12,6 +12,7 @@ class Game:
         if len(players) != 4:
             raise ValueError('There must be four players.')
         self.players = players
+        self.game_nr = game_nr
 
         # Invariant: the union of these lists makes up exactly one deck of cards
         deck = Deck()
@@ -42,8 +43,15 @@ class Game:
         # Alternating directions can be implemented later if desirable
         for i in range(4):
             for card in self.players[i].pass_cards(self._player_hands[i]):
-                self._player_hands[i].remove(card)
-                self._player_hands[(i + 1) % 4].append(card)
+                if self.game_nr == 1:
+                    self._player_hands[i].remove(card)
+                    self._player_hands[(i + 1) % 4].append(card)
+                elif self.game_nr == 2:
+                    self._player_hands[i].remove(card)
+                    self._player_hands[(i + 2) % 4].append(card)
+                elif self.game_nr == 3:
+                    self._player_hands[i].remove(card)
+                    self._player_hands[(i + 3) % 4].append(card)
 
         # Play the tricks
         leading_index = self.player_index_with_two_of_clubs()
