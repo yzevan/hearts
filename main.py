@@ -2,10 +2,10 @@ import sys
 print('Terminal encoding: {}'.format(sys.stdout.encoding))
 
 from game import Game
-from player import StupidPlayer, SimplePlayer
+from player import StupidPlayer, SimplePlayer, ExpertPlayer
 
 # These four players are playing the game
-players = [SimplePlayer(), SimplePlayer(), SimplePlayer(), SimplePlayer()]
+players = [ExpertPlayer(), SimplePlayer(), SimplePlayer(), SimplePlayer()]
 
 # We are simulating n games accumulating a total score
 nr_of_matches = 20

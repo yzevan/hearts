@@ -62,16 +62,17 @@ class Game:
         Perform the card passing.
         """
         for i in range(4):
-            for card in self.players[i].pass_cards(self._player_hands[i]):
-                if self.game_nr == 1:
-                    self._player_hands[i].remove(card)
-                    self._player_hands[(i + 1) % 4].append(card)
-                elif self.game_nr == 2:
-                    self._player_hands[i].remove(card)
-                    self._player_hands[(i + 2) % 4].append(card)
-                elif self.game_nr == 3:
-                    self._player_hands[i].remove(card)
-                    self._player_hands[(i + 3) % 4].append(card)
+            if self.game_nr in [1, 2, 3]:
+                for card in self.players[i].pass_cards(self._player_hands[i]):
+                    if self.game_nr == 1:
+                        self._player_hands[i].remove(card)
+                        self._player_hands[(i + 1) % 4].append(card)
+                    elif self.game_nr == 2:
+                        self._player_hands[i].remove(card)
+                        self._player_hands[(i + 2) % 4].append(card)
+                    elif self.game_nr == 3:
+                        self._player_hands[i].remove(card)
+                        self._player_hands[(i + 3) % 4].append(card)
 
     def play_trick(self, leading_index, trick_nr):
         """
