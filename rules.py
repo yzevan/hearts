@@ -9,6 +9,9 @@ def is_card_valid(hand, trick, card, trick_nr, are_hearts_broken):
     Return True if the given card is valid to play in given context, False otherwise.
     """
     # No points allowed in first trick
+    if trick_nr == 0 and all([card.suit == Suit.hearts for card in hand]):
+        return True
+
     if trick_nr == 0 and card_points(card) > 0:
         return False
 
