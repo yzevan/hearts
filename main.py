@@ -8,12 +8,15 @@ from player import StupidPlayer, SimplePlayer
 players = [SimplePlayer(), SimplePlayer(), SimplePlayer(), SimplePlayer()]
 
 # We are simulating n games accumulating a total score
-scores = (0, 0, 0, 0)
-nr_of_games = 500
-print('We are playing {} game in total.'.format(nr_of_games))
-for game_nr in range(nr_of_games):
-    print('GAME {}'.format(game_nr))
-    game = Game(players, verbose=True)
-    scores = tuple(sum(x) for x in zip(scores, game.play()))
-
-print(scores)
+nr_of_matches = 20
+print('We are playing {} matches in total.'.format(nr_of_matches))
+for match_nr in range(nr_of_matches):
+    scores = (0, 0, 0, 0)
+    game_nr = 0
+    print('MATCH {}'.format(match_nr))
+    while(max(scores) < 100):
+        print('GAME {}'.format(game_nr))
+        game_nr += 1
+        game = Game(players, verbose=True)
+        scores = tuple(sum(x) for x in zip(scores, game.play()))
+    print(scores)
