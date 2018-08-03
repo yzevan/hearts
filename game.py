@@ -32,6 +32,15 @@ class Game:
                 return True
         return False
 
+    def is_spade_queen_played(self):
+        """
+        Return True if the spade queen is played yet, otherwise return False.
+        """
+        for cards in self._cards_taken:
+            if any(card == Card(Suit.spades, Rank.queen) for card in cards):
+                return True
+        return False
+
     def play(self):
         """
         Simulate a single game and return a 4-tuple of the scores.
@@ -82,10 +91,11 @@ class Game:
         player_index = leading_index
         trick = []
         are_hearts_broken = self.are_hearts_broken()
+        is_spade_queen_played = self.is_spade_queen_played()
         for _ in range(4):
             player = self.players[player_index]
             player_hand = self._player_hands[player_index]
-            played_card = player.play_card(player_hand, trick, trick_nr, are_hearts_broken)
+            played_card = player.play_card(player_hand, trick, trick_nr, are_hearts_broken, is_spade_queen_played)
             if not is_card_valid(player_hand, trick, played_card, trick_nr, are_hearts_broken):
                 raise ValueError('Player {} ({}) played an invalid card {} to the trick {}.'
                                  .format(player_index, type(player).__name__, played_card, trick))

@@ -11,7 +11,7 @@ class SimplePlayer(Player):
     It will try to get rid of the most undesirable cards while trying not to win a trick.
     """
 
-    def __init__(self, verbose=True):
+    def __init__(self, verbose=False):
         self.verbose = verbose
         if verbose:
             deck = Deck()
@@ -34,7 +34,7 @@ class SimplePlayer(Player):
         hand.sort(key=self.undesirability, reverse=True)
         return hand[:3]
                     
-    def play_card(self, hand, trick, trick_nr, are_hearts_broken):
+    def play_card(self, hand, trick, trick_nr, are_hearts_broken, is_spade_queen_played):
         # Lead with a low card
         if not trick:
             hand.sort(key=lambda card:

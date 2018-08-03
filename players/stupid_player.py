@@ -14,7 +14,7 @@ class StupidPlayer(Player):
     def pass_cards(self, hand):
         return hand[:3]
 
-    def play_card(self, hand, trick, trick_nr, are_hearts_broken):
+    def play_card(self, hand, trick, trick_nr, are_hearts_broken, is_spade_queen_played):
         # Play first card that is valid
         for card in hand:
             if is_card_valid(hand, trick, card, trick_nr, are_hearts_broken):
