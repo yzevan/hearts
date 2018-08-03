@@ -2,7 +2,9 @@ import sys
 print('Terminal encoding: {}'.format(sys.stdout.encoding))
 
 from game import Game
-from player import StupidPlayer, SimplePlayer, ExpertPlayer
+from players.stupid_player import StupidPlayer
+from players.simple_player import SimplePlayer
+from players.expert_player import ExpertPlayer
 
 # These four players are playing the game
 players = [ExpertPlayer(), SimplePlayer(), SimplePlayer(), SimplePlayer()]
