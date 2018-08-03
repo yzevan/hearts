@@ -49,39 +49,25 @@ class AdvancedPlayer(Player):
         if trick_nr == 0:
             hand.sort()
         self.say('Hand: {}', hand)
+        self.say('Trick: {}', trick)
         valid_cards = [card for card in hand
                        if is_card_valid(hand, trick, card, trick_nr, are_hearts_broken)]
         self.say('Valid cards: {}', valid_cards)
-        if trick_nr == 0:
-            decision = self.play_card_for_first_trick(valid_cards)
-        elif trick:
+        if trick:
             leading_suit = trick[0].suit
             decision = self.play_card_for_leading_suit(leading_suit, valid_cards, trick, is_spade_queen_played)
         else:
-            valid_cards_copy = valid_cards.copy()
-            valid_cards_copy.sort(key=self.undesirability)
-            decision = valid_cards_copy[0]
-        self.say('played card {} to the trick {}.', decision, trick)
+            if trick_nr == 0:
+                decision = Card(Suit.clubs, Rank.two)
+            else:
+                valid_cards_copy = valid_cards.copy()
+                valid_cards_copy.sort(key=self.undesirability)
+                decision = valid_cards_copy[0]
+        self.say('played card: {}', decision)
         return decision
 
     def cards_with_suit(self, suit, cards):
         return [card for card in cards if card.suit == suit]
-
-    def play_card_for_first_trick(self, cards):
-        if Card(Suit.clubs, Rank.two) in cards:
-            return Card(Suit.clubs, Rank.two)
-        elif self.cards_with_suit(Suit.clubs, cards):
-            return self.cards_with_suit(Suit.clubs, cards)[-1]
-        elif Card(Suit.spades, Rank.ace) in cards:
-            return Card(Suit.spades, Rank.ace)
-        elif Card(Suit.spades, Rank.king) in cards:
-            return Card(Suit.spades, Rank.king)
-        elif self.cards_with_suit(Suit.diamonds, cards):
-            return self.cards_with_suit(Suit.diamonds, cards)[-1]
-        elif self.cards_with_suit(Suit.spades, cards):
-            return self.cards_with_suit(Suit.spades, cards)[-1]
-        else:
-            return cards[-1]
 
     def play_card_for_leading_suit(self, suit, cards, trick, is_spade_queen_played):
         cards_with_leading_suit = self.cards_with_suit(suit, cards)
@@ -119,4 +105,6 @@ class AdvancedPlayer(Player):
                 decision = cards[-1]
             else:
                 decision = cards[0]
+                if decision == Card(Suit.spades, Rank.queen) and len(cards) > 1:
+                    decision = cards[1]
         return decision
