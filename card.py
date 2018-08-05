@@ -17,12 +17,7 @@ class Suit(OrderedEnum):
     hearts = 3
 
     def __repr__(self):
-        if sys.stdout.encoding in ['cp437', 'cp850']:
-            # These are the correct unicode symbols in cp437 or cp850 encoding
-            # They don't work for 1252 of utf8
-            return [chr(5), chr(4), chr(6), chr(3)][self.value]
-        else:
-            return ['C', 'D', 'S', 'H'][self.value]
+        return ['C', 'D', 'S', 'H'][self.value - 0]
 
 
 class Rank(OrderedEnum):
