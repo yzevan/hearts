@@ -24,8 +24,6 @@ class Player:
         """
         return NotImplemented
 
-    def see_played_trick(self, trick, trick_nr):
-        """
-        Allows the player to have a look at all four cards in the trick being played.
-        """
-        pass
+    def all_valid_cards(self, hand, trick, trick_nr, are_hearts_broken):
+        return [card for card in hand
+                       if is_card_valid(hand, trick, card, trick_nr, are_hearts_broken)]

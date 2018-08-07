@@ -50,8 +50,7 @@ class AdvancedPlayer(Player):
             hand.sort()
         self.say('Hand: {}', hand)
         self.say('Trick: {}', trick)
-        valid_cards = [card for card in hand
-                       if is_card_valid(hand, trick, card, trick_nr, are_hearts_broken)]
+        valid_cards = self.all_valid_cards(hand, trick, trick_nr, are_hearts_broken)
         self.say('Valid cards: {}', valid_cards)
         if trick:
             leading_suit = trick[0].suit

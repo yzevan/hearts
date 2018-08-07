@@ -18,6 +18,8 @@ class Game:
         deck = Deck()
         self._player_hands = tuple(deck.deal())
         self._cards_taken = ([], [], [], [])
+        self.current_player = ""
+        self.current_trick_valid_cards = []
 
     def say(self, message, *formatargs):
         if self.verbose:
@@ -90,27 +92,28 @@ class Game:
         """
         player_index = leading_index
         trick = []
-        are_hearts_broken = self.are_hearts_broken()
-        is_spade_queen_played = self.is_spade_queen_played()
-        for _ in range(4):
-            player = self.players[player_index]
-            player_hand = self._player_hands[player_index]
-            played_card = player.play_card(player_hand, trick, trick_nr, are_hearts_broken, is_spade_queen_played)
-            if not is_card_valid(player_hand, trick, played_card, trick_nr, are_hearts_broken):
-                raise ValueError('Player {} ({}) played an invalid card {} to the trick {}.'
-                                 .format(player_index, type(player).__name__, played_card, trick))
-            trick.append(played_card)
-            self._player_hands[player_index].remove(played_card)
-            player_index = (player_index + 1) % 4
 
-        for player in self.players:
-            player.see_played_trick(trick, trick_nr)
+        for _ in range(4):
+            player_index = self.step(trick, player_index, trick_nr)
 
         winning_index = self.winning_index(trick)
         winning_player_index = (leading_index + winning_index) % 4
         self.say('Player {} won the trick {}.', winning_player_index, trick)
         self._cards_taken[winning_player_index].extend(trick)
         return winning_player_index
+
+    def step(self, trick, player_index, trick_nr):
+        are_hearts_broken = self.are_hearts_broken()
+        is_spade_queen_played = self.is_spade_queen_played()
+        player = self.players[player_index]
+        self.current_player = player
+        player_hand = self._player_hands[player_index]
+        self.current_trick_valid_cards = player.all_valid_cards(player_hand, trick, trick_nr, are_hearts_broken)
+        played_card = player.play_card(player_hand, trick, trick_nr, are_hearts_broken, is_spade_queen_played)
+        trick.append(played_card)
+        self._player_hands[player_index].remove(played_card)
+        player_index = (player_index + 1) % 4
+        return player_index
 
     def player_index_with_two_of_clubs(self):
         two_of_clubs = Card(Suit.clubs, Rank.two)
@@ -142,3 +145,9 @@ class Game:
         """
         # TODO: implement "shoot the moon"
         return sum(card_points(card) for card in cards)
+
+    def getCurrentPlayer(self):
+        return self.current_player
+
+    def getCurrentTrickValidCards(self):
+        return self.current_trick_valid_cards

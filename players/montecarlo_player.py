@@ -24,9 +24,21 @@ class MonteCarloPlayer(Player):
         self.states.append(state)
 
     def get_play(self):
+        self.max_depth = 0
+        state = self.states[-1]
+        player = self.game.getCurrentPlayer()
+        legal = self.game.getCurrentTrickValidCards()
+
+        if not legal:
+            return
+        if len(legal) == 1:
+            return legal[0]
+
+        games = 0
         begin = datetime.datetime.utcnow()
         while datetime.datetime.utcnow() - begin < self.calculation_time:
             self.run_simulation()
+            games += 1
 
     def run_simulation(self):
         pass

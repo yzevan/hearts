@@ -50,8 +50,7 @@ class SimplePlayer(Player):
         leading_suit = trick[0].suit
         max_rank_in_leading_suit = max([card.rank for card in trick
                                         if card.suit == leading_suit])
-        valid_cards = [card for card in hand
-                       if is_card_valid(hand, trick, card, trick_nr, are_hearts_broken)]
+        valid_cards = self.all_valid_cards(hand, trick, trick_nr, are_hearts_broken)
         safe_cards = [card for card in valid_cards
                       if card.suit != leading_suit or card.rank <= max_rank_in_leading_suit]
 
