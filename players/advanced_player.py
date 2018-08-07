@@ -23,7 +23,7 @@ class AdvancedPlayer(Player):
 
     def pass_cards(self, hand):
         self.say('Hand before passing: {}', hand)
-        hand_copy = hand.copy()
+        hand_copy = hand[:]
         cards_to_pass = []
         for _ in range(0, 3):
             spades_in_hand = [card for card in hand_copy if card.suit == Suit.spades]
@@ -60,7 +60,7 @@ class AdvancedPlayer(Player):
             if trick_nr == 0:
                 decision = Card(Suit.clubs, Rank.two)
             else:
-                valid_cards_copy = valid_cards.copy()
+                valid_cards_copy = valid_cards[:]
                 valid_cards_copy.sort(key=self.undesirability)
                 decision = valid_cards_copy[0]
         self.say('played card: {}', decision)
@@ -89,7 +89,7 @@ class AdvancedPlayer(Player):
             elif Card(Suit.spades, Rank.king) in cards and not is_spade_queen_played:
                 decision = Card(Suit.spades, Rank.king)
             else:
-                cards_copy = cards.copy()
+                cards_copy = cards[:]
                 cards_copy.sort(key=self.undesirability)
                 decision = cards_copy[-1]
         return decision
