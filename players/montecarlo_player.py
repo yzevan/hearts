@@ -35,8 +35,7 @@ class MonteCarloPlayer(Player):
 
     def play_card(self):
         self.max_depth = 0
-        state = self.states[-1]
-        player = self.game.current_player
+        player = self.game.players[self.game.current_player_index]
         legal = self.game.current_trick_valid_cards
 
         if not legal:
@@ -86,8 +85,8 @@ class MonteCarloPlayer(Player):
         state = states_copy[-1]
         
         expand = True
-        for t in xrange(self.max_moves):
-            player = self.game.current_player
+        for t in range(self.max_moves):
+            player = self.game.players[self.game.current_player_index]
             legal = self.game.current_trick_valid_cards
 
             moves_states = []
@@ -107,3 +106,5 @@ class MonteCarloPlayer(Player):
             else:
                 # Otherwise, just make an arbitrary decision.
                 move, state = choice(moves_states)
+
+            self.game.update_status(move)

@@ -9,8 +9,6 @@ class Game:
         players is a list of four players
         """
         self.verbose = verbose
-        if len(players) != 4:
-            raise ValueError('There must be four players.')
         self.players = players
         self.game_nr = game_nr
 
@@ -18,9 +16,12 @@ class Game:
         deck = Deck()
         self._player_hands = tuple(deck.deal())
         self._cards_taken = ([], [], [], [])
-        self.current_player = ""
+        self.current_player_index = 0
         self.current_trick_valid_cards = []
         self.cards_played = []
+        self.current_trick = []
+        self.trick_nr = 0
+        self.leading_index = 0
 
     def say(self, message, *formatargs):
         if self.verbose:
@@ -48,11 +49,10 @@ class Game:
         self.card_passing()
 
         # Play the tricks
-        leading_index = self.player_index_with_two_of_clubs()
-        self.current_player = self.players[leading_index]
-        are_hearts_broken = False
-        for trick_nr in range(13):
-            leading_index, are_hearts_broken = self.play_trick(leading_index, trick_nr, are_hearts_broken)
+        self.leading_index = self.player_index_with_two_of_clubs()
+        self.current_player_index = self.leading_index
+        for _ in range(13):
+            self.play_trick()
 
         results = self.count_points()
         # Print and return the results
@@ -83,49 +83,39 @@ class Game:
                         self._player_hands[i].remove(card)
                         self._player_hands[(i + 3) % 4].append(card)
 
-    def play_trick(self, leading_index, trick_nr, are_hearts_broken):
+    def play_trick(self):
         """
         Simulate a single trick.
         leading_index contains the index of the player that must begin.
         """
-        player_index = leading_index
-        trick = []
-
         for _ in range(4):
-            player_index, are_hearts_broken, leading_index = self.step(trick, player_index, trick_nr, are_hearts_broken, leading_index)
+            self.step()
 
-        return leading_index, are_hearts_broken
+    def step(self):
+        played_card = self.players[self.current_player_index].play_card(self._player_hands[self.current_player_index], self.current_trick, self.trick_nr, self.are_hearts_broken(), self.is_spade_queen_played())
+        self.update_status(played_card)
 
-    def step(self, trick, player_index, trick_nr, are_hearts_broken, leading_index):
-        is_spade_queen_played = self.is_spade_queen_played()
-        player_hand = self._player_hands[player_index]
-        played_card = self.current_player.play_card(player_hand, trick, trick_nr, are_hearts_broken, is_spade_queen_played)
-        return self.update_status(trick, player_index, trick_nr, played_card, leading_index)
-
-    def update_status(self, trick, player_index, trick_nr, played_card, leading_index):
-        trick.append(played_card)
-        self._player_hands[player_index].remove(played_card)
+    def update_status(self, played_card):
+        self.current_trick.append(played_card)
+        self._player_hands[self.current_player_index].remove(played_card)
         self.cards_played.append(played_card)
-        player_index = (player_index + 1) % 4
-        are_hearts_broken = self.are_hearts_broken()
-        self.current_player = self.players[player_index]
-        player_hand = self._player_hands[player_index]
-        self.current_trick_valid_cards = self.current_player.all_valid_cards(player_hand, trick, trick_nr, are_hearts_broken)
-        if len(trick) == 4:
-            winning_index = self.winning_index(trick)
-            winning_player_index = (leading_index + winning_index) % 4
-            self.say('Player {} won the trick {}.', winning_player_index, trick)
-            self._cards_taken[winning_player_index].extend(trick)
+        self.current_player_index = (self.current_player_index + 1) % 4
+        self.current_trick_valid_cards = self.players[self.current_player_index].all_valid_cards(self._player_hands[self.current_player_index], self.current_trick, self.trick_nr, self.are_hearts_broken())
+        if len(self.current_trick) == 4:
+            winning_index = self.winning_index(self.current_trick)
+            self.leading_index = (self.leading_index + winning_index) % 4
+            self.current_player_index = self.leading_index
+            self.say('Player {} won the trick {}.', self.leading_index, self.current_trick)
+            self._cards_taken[self.leading_index].extend(self.current_trick)
             self.say('Cards played: {}', self.cards_played)
-        return player_index, are_hearts_broken, leading_index
-
+            self.current_trick = []
+            self.trick_nr += 1
+            
     def player_index_with_two_of_clubs(self):
         two_of_clubs = Card(Suit.clubs, Rank.two)
         for i in range(4):
             if two_of_clubs in self._player_hands[i]:
                 return i
-
-        raise AssertionError('No one has the two of clubs. This should not happen.')
 
     def winning_index(self, trick):
         """
