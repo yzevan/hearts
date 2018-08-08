@@ -58,6 +58,9 @@ class Card:
     def __eq__(self, other):
         return (self.suit, self.rank) == (other.suit, other.rank)
 
+    def __hash__(self):
+        return hash(repr(self))
+
 
 class Deck:
 

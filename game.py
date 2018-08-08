@@ -1,6 +1,6 @@
 from card import Suit, Rank, Card, Deck
 from rules import is_card_valid, card_points
-
+from players.montecarlo_player import MonteCarloPlayer
 
 class Game:
 
@@ -12,7 +12,13 @@ class Game:
         self.players = players
         self.game_nr = game_nr
 
-        # Invariant: the union of these lists makes up exactly one deck of cards
+        self.new_game()
+
+    def say(self, message, *formatargs):
+        if self.verbose:
+            print(message.format(*formatargs))
+
+    def new_game(self):
         deck = Deck()
         self._player_hands = tuple(deck.deal())
         self._cards_taken = ([], [], [], [])
@@ -22,10 +28,9 @@ class Game:
         self.current_trick = []
         self.trick_nr = 0
         self.leading_index = 0
-
-    def say(self, message, *formatargs):
-        if self.verbose:
-            print(message.format(*formatargs))
+        for player in self.players:
+            if type(player) == MonteCarloPlayer:
+                player.setGame(self)
 
     def are_hearts_broken(self):
         """
@@ -100,7 +105,6 @@ class Game:
         self._player_hands[self.current_player_index].remove(played_card)
         self.cards_played.append(played_card)
         self.current_player_index = (self.current_player_index + 1) % 4
-        self.current_trick_valid_cards = self.players[self.current_player_index].all_valid_cards(self._player_hands[self.current_player_index], self.current_trick, self.trick_nr, self.are_hearts_broken())
         if len(self.current_trick) == 4:
             winning_index = self.winning_index(self.current_trick)
             self.leading_index = (self.leading_index + winning_index) % 4
@@ -110,6 +114,7 @@ class Game:
             self.say('Cards played: {}', self.cards_played)
             self.current_trick = []
             self.trick_nr += 1
+        self.current_trick_valid_cards = self.players[self.current_player_index].all_valid_cards(self._player_hands[self.current_player_index], self.current_trick, self.trick_nr, self.are_hearts_broken())
             
     def player_index_with_two_of_clubs(self):
         two_of_clubs = Card(Suit.clubs, Rank.two)
@@ -149,6 +154,8 @@ class Game:
         return points
 
     def winners(self):
+        if len(self.cards_played) != 52:
+            return None
         winners = []
         results = self.count_points()
         min_point = min(results)

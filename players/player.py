@@ -32,8 +32,11 @@ class Player:
             cards_to_pass.append(card_to_pass)
             hand_copy.remove(card_to_pass)
         return cards_to_pass
+    
+    def cards_with_suit(self, suit, cards):
+        return [card for card in cards if card.suit == suit]
 
-    def play_card(self, hand, trick, trick_nr, are_hearts_broken):
+    def play_card(self, hand, trick, trick_nr, are_hearts_broken, is_spade_queen_played):
         """
         Must return a card from the given hand.
         trick is a list of cards played so far.

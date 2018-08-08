@@ -47,9 +47,6 @@ class AdvancedPlayer(Player):
         self.say('played card: {}', decision)
         return decision
 
-    def cards_with_suit(self, suit, cards):
-        return [card for card in cards if card.suit == suit]
-
     def play_card_for_leading_suit(self, suit, cards, trick, is_spade_queen_played):
         cards_with_leading_suit = self.cards_with_suit(suit, cards)
         if cards_with_leading_suit:

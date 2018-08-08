@@ -1,18 +1,18 @@
+from __future__ import division
 from players.player import Player
 from card import Suit, Rank, Card, Deck
 from rules import is_card_valid
 import datetime
 from random import choice
-from __future__ import division
 from math import log, sqrt
+import copy
 
 class MonteCarloPlayer(Player):
 
-    def __init__(self, game, verbose=True, **kwargs):
+    def __init__(self, verbose=True, **kwargs):
         self.verbose = verbose
-        self.game = game
-        self.states = []
-        seconds = kwargs.get('time', 30)
+        # self.states = []
+        seconds = kwargs.get('time', 5)
         self.calculation_time = datetime.timedelta(seconds=seconds)
         self.max_moves = kwargs.get('max_moves', 100)
         self.wins = {}
@@ -24,8 +24,11 @@ class MonteCarloPlayer(Player):
         if self.verbose:
             print(message.format(*formatargs))
 
-    def update(self, state):
-        self.states.append(state)
+    def setGame(self, game):
+        self.game = game
+
+    # def update(self, state):
+    #     self.states.append(state)
 
     def pass_cards(self, hand):
         self.say('Hand before passing: {}', hand)
@@ -33,7 +36,7 @@ class MonteCarloPlayer(Player):
         self.say('Cards to pass: {}', cards_to_pass)
         return cards_to_pass
 
-    def play_card(self):
+    def play_card(self, hand, trick, trick_nr, are_hearts_broken, is_spade_queen_played):
         self.max_depth = 0
         player = self.game.players[self.game.current_player_index]
         legal = self.game.current_trick_valid_cards
@@ -52,8 +55,9 @@ class MonteCarloPlayer(Player):
         self.say('Time: {}', datetime.datetime.utcnow() - begin)
         
         moves_states = []
+        cards_played = tuple(self.game.cards_played)
         for p in legal:
-            legal_state = self.game.cards_played + p
+            legal_state = cards_played + (p,)
             moves_states.append((p, legal_state))
 
         percent_wins, move = max(
@@ -79,19 +83,18 @@ class MonteCarloPlayer(Player):
 
     def run_simulation(self):
         plays, wins = self.plays, self.wins
-
+        current_game = copy.deepcopy(self.game)
         visited_states = set()
-        states_copy = self.states[:]
-        state = states_copy[-1]
-        
+
         expand = True
-        for t in range(self.max_moves):
-            player = self.game.players[self.game.current_player_index]
-            legal = self.game.current_trick_valid_cards
+        for t in range(1, self.max_moves + 1):
+            player = current_game.players[current_game.current_player_index]
+            legal = current_game.current_trick_valid_cards
 
             moves_states = []
+            cards_played = tuple(current_game.cards_played)
             for p in legal:
-                legal_state = self.game.cards_played + p
+                legal_state = cards_played + (p,)
                 moves_states.append((p, legal_state))
                 
             if all(plays.get((player, S)) for p, S in moves_states):
@@ -107,4 +110,23 @@ class MonteCarloPlayer(Player):
                 # Otherwise, just make an arbitrary decision.
                 move, state = choice(moves_states)
 
-            self.game.update_status(move)
+            current_game.update_status(move)
+
+            if expand and (player, state) not in plays:
+                expand = False
+                plays[(player, state)] = 0
+                wins[(player, state)] = 0
+                if t > self.max_depth:
+                    self.max_depth = t
+
+            visited_states.add((player, state))
+            winners = current_game.winners()
+            if winners:
+                break
+        
+        for player, state in visited_states:
+            if (player, state) not in plays:
+                continue
+            plays[(player, state)] += 1
+            if player in winners:
+                wins[(player, state)] += 1
