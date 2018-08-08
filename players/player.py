@@ -12,7 +12,26 @@ class Player:
 
     def pass_cards(self, hand):
         """Must return a list of three cards from the given hand."""
-        return NotImplemented
+        hand_copy = hand[:]
+        cards_to_pass = []
+        for _ in range(3):
+            spades_in_hand = [card for card in hand_copy if card.suit == Suit.spades]
+            if len(spades_in_hand) < 6 and Card(Suit.spades, Rank.queen) in spades_in_hand:
+                card_to_pass = Card(Suit.spades, Rank.queen)
+            elif len(spades_in_hand) < 6 and Card(Suit.spades, Rank.ace) in spades_in_hand:
+                card_to_pass = Card(Suit.spades, Rank.ace)
+            elif len(spades_in_hand) < 6 and Card(Suit.spades, Rank.king) in spades_in_hand:
+                card_to_pass = Card(Suit.spades, Rank.king)
+            else:
+                other_suits_in_hand = [self.cards_with_suit(Suit.clubs, hand_copy), 
+                                       self.cards_with_suit(Suit.diamonds, hand_copy), 
+                                       self.cards_with_suit(Suit.hearts, hand_copy)]
+                suits_array = [x for x in other_suits_in_hand if x]
+                min_suit_array = min(suits_array, key=len)
+                card_to_pass = min_suit_array[-1]
+            cards_to_pass.append(card_to_pass)
+            hand_copy.remove(card_to_pass)
+        return cards_to_pass
 
     def play_card(self, hand, trick, trick_nr, are_hearts_broken):
         """

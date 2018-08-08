@@ -30,4 +30,11 @@ def card_points(card):
     """
     Return the number of points given card is worth.
     """
-    return 1 if card.suit == Suit.hearts else 0 + 13 if card == Card(Rank.queen, Suit.spades) else 0
+    if card == Card(Suit.spades, Rank.queen):
+        return 13
+    if card.suit == Suit.hearts:
+        return 1
+    return 0
+
+def is_last_trick(trick):
+    return len(trick) == 3

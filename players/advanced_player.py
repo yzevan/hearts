@@ -1,7 +1,7 @@
 from players.player import Player
 from random import shuffle
 from card import Suit, Rank, Card, Deck
-from rules import is_card_valid
+from rules import is_card_valid, is_last_trick
 
 
 class AdvancedPlayer(Player):
@@ -23,25 +23,7 @@ class AdvancedPlayer(Player):
 
     def pass_cards(self, hand):
         self.say('Hand before passing: {}', hand)
-        hand_copy = hand[:]
-        cards_to_pass = []
-        for _ in range(0, 3):
-            spades_in_hand = [card for card in hand_copy if card.suit == Suit.spades]
-            if len(spades_in_hand) < 6 and Card(Suit.spades, Rank.queen) in spades_in_hand:
-                card_to_pass = Card(Suit.spades, Rank.queen)
-            elif len(spades_in_hand) < 6 and Card(Suit.spades, Rank.ace) in spades_in_hand:
-                card_to_pass = Card(Suit.spades, Rank.ace)
-            elif len(spades_in_hand) < 6 and Card(Suit.spades, Rank.king) in spades_in_hand:
-                card_to_pass = Card(Suit.spades, Rank.king)
-            else:
-                other_suits_in_hand = [self.cards_with_suit(Suit.clubs, hand_copy), 
-                                       self.cards_with_suit(Suit.diamonds, hand_copy), 
-                                       self.cards_with_suit(Suit.hearts, hand_copy)]
-                suits_array = [x for x in other_suits_in_hand if x]
-                min_suit_array = min(suits_array, key=len)
-                card_to_pass = min_suit_array[-1]
-            cards_to_pass.append(card_to_pass)
-            hand_copy.remove(card_to_pass)
+        cards_to_pass = super(AdvancedPlayer, self).pass_cards(hand)
         self.say('Cards to pass: {}', cards_to_pass)
         return cards_to_pass
                     
@@ -71,7 +53,7 @@ class AdvancedPlayer(Player):
     def play_card_for_leading_suit(self, suit, cards, trick, is_spade_queen_played):
         cards_with_leading_suit = self.cards_with_suit(suit, cards)
         if cards_with_leading_suit:
-            if len(trick) == 3:
+            if is_last_trick(trick):
                 if self.cards_with_suit(Suit.hearts, trick) or Card(Suit.spades, Rank.queen) in trick:
                     decision = self.best_available(suit, cards_with_leading_suit, trick)
                 else:
@@ -100,7 +82,7 @@ class AdvancedPlayer(Player):
         if safe_cards:
             decision = safe_cards[-1]
         else:
-            if len(trick) == 3:
+            if is_last_trick(trick):
                 decision = cards[-1]
             else:
                 decision = cards[0]

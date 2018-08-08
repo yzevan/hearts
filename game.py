@@ -20,6 +20,7 @@ class Game:
         self._cards_taken = ([], [], [], [])
         self.current_player = ""
         self.current_trick_valid_cards = []
+        self.cards_played = []
 
     def say(self, message, *formatargs):
         if self.verbose:
@@ -29,19 +30,13 @@ class Game:
         """
         Return True if the hearts are broken yet, otherwise return False.
         """
-        for cards in self._cards_taken:
-            if any(card.suit == Suit.hearts for card in cards):
-                return True
-        return False
+        return any(card.suit == Suit.hearts for card in self.cards_played)
 
     def is_spade_queen_played(self):
         """
         Return True if the spade queen is played yet, otherwise return False.
         """
-        for cards in self._cards_taken:
-            if any(card == Card(Suit.spades, Rank.queen) for card in cards):
-                return True
-        return False
+        return Card(Suit.spades, Rank.queen) in self.cards_played
 
     def play(self):
         """
@@ -54,19 +49,22 @@ class Game:
 
         # Play the tricks
         leading_index = self.player_index_with_two_of_clubs()
+        self.current_player = self.players[leading_index]
+        are_hearts_broken = False
         for trick_nr in range(13):
-            leading_index = self.play_trick(leading_index, trick_nr)
+            leading_index, are_hearts_broken = self.play_trick(leading_index, trick_nr, are_hearts_broken)
 
+        results = self.count_points()
         # Print and return the results
         self.say('Results of this game:')
         for i in range(4):
             self.say('Player {} got {} points from the cards {}',
                      i,
-                     self.count_points(self._cards_taken[i]),
+                     results[i],
                      ' '.join(str(card) for card in self._cards_taken[i])
                      )
 
-        return tuple(self.count_points(self._cards_taken[i]) for i in range(4))
+        return tuple(results)
 
     def card_passing(self):
         """
@@ -85,7 +83,7 @@ class Game:
                         self._player_hands[i].remove(card)
                         self._player_hands[(i + 3) % 4].append(card)
 
-    def play_trick(self, leading_index, trick_nr):
+    def play_trick(self, leading_index, trick_nr, are_hearts_broken):
         """
         Simulate a single trick.
         leading_index contains the index of the player that must begin.
@@ -94,26 +92,32 @@ class Game:
         trick = []
 
         for _ in range(4):
-            player_index = self.step(trick, player_index, trick_nr)
+            player_index, are_hearts_broken, leading_index = self.step(trick, player_index, trick_nr, are_hearts_broken, leading_index)
 
-        winning_index = self.winning_index(trick)
-        winning_player_index = (leading_index + winning_index) % 4
-        self.say('Player {} won the trick {}.', winning_player_index, trick)
-        self._cards_taken[winning_player_index].extend(trick)
-        return winning_player_index
+        return leading_index, are_hearts_broken
 
-    def step(self, trick, player_index, trick_nr):
-        are_hearts_broken = self.are_hearts_broken()
+    def step(self, trick, player_index, trick_nr, are_hearts_broken, leading_index):
         is_spade_queen_played = self.is_spade_queen_played()
-        player = self.players[player_index]
-        self.current_player = player
         player_hand = self._player_hands[player_index]
-        self.current_trick_valid_cards = player.all_valid_cards(player_hand, trick, trick_nr, are_hearts_broken)
-        played_card = player.play_card(player_hand, trick, trick_nr, are_hearts_broken, is_spade_queen_played)
+        played_card = self.current_player.play_card(player_hand, trick, trick_nr, are_hearts_broken, is_spade_queen_played)
+        return self.update_status(trick, player_index, trick_nr, played_card, leading_index)
+
+    def update_status(self, trick, player_index, trick_nr, played_card, leading_index):
         trick.append(played_card)
         self._player_hands[player_index].remove(played_card)
+        self.cards_played.append(played_card)
         player_index = (player_index + 1) % 4
-        return player_index
+        are_hearts_broken = self.are_hearts_broken()
+        self.current_player = self.players[player_index]
+        player_hand = self._player_hands[player_index]
+        self.current_trick_valid_cards = self.current_player.all_valid_cards(player_hand, trick, trick_nr, are_hearts_broken)
+        if len(trick) == 4:
+            winning_index = self.winning_index(trick)
+            winning_player_index = (leading_index + winning_index) % 4
+            self.say('Player {} won the trick {}.', winning_player_index, trick)
+            self._cards_taken[winning_player_index].extend(trick)
+            self.say('Cards played: {}', self.cards_played)
+        return player_index, are_hearts_broken, leading_index
 
     def player_index_with_two_of_clubs(self):
         two_of_clubs = Card(Suit.clubs, Rank.two)
@@ -139,15 +143,26 @@ class Game:
 
         return result
 
-    def count_points(self, cards):
+    def count_points(self):
         """
         Count the number of points in cards, where cards is a list of Cards.
         """
-        # TODO: implement "shoot the moon"
-        return sum(card_points(card) for card in cards)
+        points = [0, 0, 0, 0]
+        for i, cards in enumerate(self._cards_taken):
+            points[i] = sum(card_points(card) for card in cards)
+        for i, point in enumerate(points):
+            if point == 26:
+                self.say('Shoot the moon')
+                for x in range(4):
+                    points[x] = (0 if x == i else 26)
+                return points
+        return points
 
-    def getCurrentPlayer(self):
-        return self.current_player
-
-    def getCurrentTrickValidCards(self):
-        return self.current_trick_valid_cards
+    def winners(self):
+        winners = []
+        results = self.count_points()
+        min_point = min(results)
+        for i in range(4):
+            if results[i] == min_point:
+                winners.append(self.players[i])
+        return winners
