@@ -4,7 +4,7 @@ from players.montecarlo_player import MonteCarloPlayer
 
 class Game:
 
-    def __init__(self, players, game_nr, verbose=False):
+    def __init__(self, players, game_nr, verbose=True):
         """
         players is a list of four players
         """

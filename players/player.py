@@ -36,11 +36,12 @@ class Player:
                 card_to_pass = Card(Suit.spades, Rank.king)
             else:
                 other_suits_in_hand = [self.cards_with_suit(Suit.clubs, hand_copy), 
-                                       self.cards_with_suit(Suit.diamonds, hand_copy), 
+                                       self.cards_with_suit(Suit.diamonds, hand_copy),
                                        self.cards_with_suit(Suit.hearts, hand_copy)]
-                suits_array = [x for x in other_suits_in_hand if x]
-                min_suit_array = min(suits_array, key=len)
-                card_to_pass = min_suit_array[-1]
+                other_suits_in_hand.sort(key=len, reverse=True)
+                other_suits_in_hand_flatten = [card for cards in other_suits_in_hand for card in cards]
+                other_suits_in_hand_flatten.sort(key=lambda card: card.rank.value)
+                card_to_pass = other_suits_in_hand_flatten[-1]
             cards_to_pass.append(card_to_pass)
             hand_copy.remove(card_to_pass)
         return cards_to_pass
