@@ -10,6 +10,12 @@ class Player:
     Abstract class defining the interface of a Computer Player.
     """
 
+    def __repr__(self):
+        return str(self.index)
+
+    def setIndex(self, index):
+        self.index = index
+
     def pass_cards(self, hand):
         """Must return a list of three cards from the given hand."""
         hand_copy = hand[:]

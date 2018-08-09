@@ -1,6 +1,4 @@
 import sys
-print('Terminal encoding: {}'.format(sys.stdout.encoding))
-
 from game import Game
 from players.stupid_player import StupidPlayer
 from players.simple_player import SimplePlayer

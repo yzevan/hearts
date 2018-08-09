@@ -20,17 +20,16 @@ class Game:
 
     def new_game(self):
         deck = Deck()
-        self._player_hands = tuple(deck.deal())
-        self._cards_taken = ([], [], [], [])
+        self.player_hands = tuple(deck.deal())
+        self.cards_taken = ([], [], [], [])
         self.current_player_index = 0
         self.current_trick_valid_cards = []
-        self.cards_played = []
+        self.cards_played = ()
         self.current_trick = []
         self.trick_nr = 0
         self.leading_index = 0
-        for player in self.players:
-            if type(player) == MonteCarloPlayer:
-                player.setGame(self)
+        for i, player in enumerate(self.players):
+            player.setIndex(i)
 
     def are_hearts_broken(self):
         """
@@ -56,6 +55,7 @@ class Game:
         # Play the tricks
         self.leading_index = self.player_index_with_two_of_clubs()
         self.current_player_index = self.leading_index
+        self.current_trick_valid_cards = self.players[self.current_player_index].all_valid_cards(self.player_hands[self.current_player_index], self.current_trick, self.trick_nr, self.are_hearts_broken())
         for _ in range(13):
             self.play_trick()
 
@@ -66,7 +66,7 @@ class Game:
             self.say('Player {} got {} points from the cards {}',
                      i,
                      results[i],
-                     ' '.join(str(card) for card in self._cards_taken[i])
+                     ' '.join(str(card) for card in self.cards_taken[i])
                      )
 
         return tuple(results)
@@ -75,18 +75,21 @@ class Game:
         """
         Perform the card passing.
         """
-        for i in range(4):
-            if self.game_nr in [1, 2, 3]:
-                for card in self.players[i].pass_cards(self._player_hands[i]):
+        if self.game_nr in [1, 2, 3]:
+            cards_to_pass = [[], [], [], []]
+            for i in range(4):
+                cards_to_pass[i] = self.players[i].pass_cards(self.player_hands[i])
+            for i in range(4):
+                for card in cards_to_pass[i]:
                     if self.game_nr == 1:
-                        self._player_hands[i].remove(card)
-                        self._player_hands[(i + 1) % 4].append(card)
+                        self.player_hands[i].remove(card)
+                        self.player_hands[(i + 1) % 4].append(card)
                     elif self.game_nr == 2:
-                        self._player_hands[i].remove(card)
-                        self._player_hands[(i + 2) % 4].append(card)
+                        self.player_hands[i].remove(card)
+                        self.player_hands[(i + 2) % 4].append(card)
                     elif self.game_nr == 3:
-                        self._player_hands[i].remove(card)
-                        self._player_hands[(i + 3) % 4].append(card)
+                        self.player_hands[i].remove(card)
+                        self.player_hands[(i + 3) % 4].append(card)
 
     def play_trick(self):
         """
@@ -97,29 +100,35 @@ class Game:
             self.step()
 
     def step(self):
-        played_card = self.players[self.current_player_index].play_card(self._player_hands[self.current_player_index], self.current_trick, self.trick_nr, self.are_hearts_broken(), self.is_spade_queen_played())
+        player = self.players[self.current_player_index]
+        if type(player) == MonteCarloPlayer:
+            player = MonteCarloPlayer()
+            player.setGame(self)
+            player.update(self.cards_played)
+            player.setIndex(self.current_player_index)
+        played_card = player.play_card(self.player_hands[self.current_player_index], self.current_trick, self.trick_nr, self.are_hearts_broken(), self.is_spade_queen_played())
         self.update_status(played_card)
 
     def update_status(self, played_card):
         self.current_trick.append(played_card)
-        self._player_hands[self.current_player_index].remove(played_card)
-        self.cards_played.append(played_card)
+        self.player_hands[self.current_player_index].remove(played_card)
+        self.cards_played += (played_card,)
         self.current_player_index = (self.current_player_index + 1) % 4
         if len(self.current_trick) == 4:
             winning_index = self.winning_index(self.current_trick)
             self.leading_index = (self.leading_index + winning_index) % 4
             self.current_player_index = self.leading_index
-            self.say('Player {} won the trick {}.', self.leading_index, self.current_trick)
-            self._cards_taken[self.leading_index].extend(self.current_trick)
-            self.say('Cards played: {}', self.cards_played)
+            # self.say('Player {} won the trick {}.', self.leading_index, self.current_trick)
+            self.cards_taken[self.leading_index].extend(self.current_trick)
+            # self.say('Cards played: {}', self.cards_played)
             self.current_trick = []
             self.trick_nr += 1
-        self.current_trick_valid_cards = self.players[self.current_player_index].all_valid_cards(self._player_hands[self.current_player_index], self.current_trick, self.trick_nr, self.are_hearts_broken())
+        self.current_trick_valid_cards = self.players[self.current_player_index].all_valid_cards(self.player_hands[self.current_player_index], self.current_trick, self.trick_nr, self.are_hearts_broken())
             
     def player_index_with_two_of_clubs(self):
         two_of_clubs = Card(Suit.clubs, Rank.two)
         for i in range(4):
-            if two_of_clubs in self._player_hands[i]:
+            if two_of_clubs in self.player_hands[i]:
                 return i
 
     def winning_index(self, trick):
@@ -143,7 +152,7 @@ class Game:
         Count the number of points in cards, where cards is a list of Cards.
         """
         points = [0, 0, 0, 0]
-        for i, cards in enumerate(self._cards_taken):
+        for i, cards in enumerate(self.cards_taken):
             points[i] = sum(card_points(card) for card in cards)
         for i, point in enumerate(points):
             if point == 26:

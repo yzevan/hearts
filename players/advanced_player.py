@@ -22,9 +22,9 @@ class AdvancedPlayer(Player):
         return card.rank.value
 
     def pass_cards(self, hand):
-        self.say('Hand before passing: {}', hand)
+        self.say('Player {} Hand before passing: {}', self, hand)
         cards_to_pass = super(AdvancedPlayer, self).pass_cards(hand)
-        self.say('Cards to pass: {}', cards_to_pass)
+        self.say('Player {} Cards to pass: {}', self, cards_to_pass)
         return cards_to_pass
                     
     def play_card(self, hand, trick, trick_nr, are_hearts_broken, is_spade_queen_played):
