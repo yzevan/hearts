@@ -59,7 +59,7 @@ class Card:
         return (self.suit, self.rank) == (other.suit, other.rank)
 
     def __hash__(self):
-        return hash(repr(self))
+        return hash(self.__str__())
 
 
 class Deck:

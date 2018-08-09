@@ -31,9 +31,7 @@ class MonteCarloPlayer(Player):
         self.states.append(state)
 
     def pass_cards(self, hand):
-        self.say('Player {} Hand before passing: {}', self, hand)
         cards_to_pass = super(MonteCarloPlayer, self).pass_cards(hand)
-        self.say('Player {} Cards to pass: {}', self, cards_to_pass)
         return cards_to_pass
 
     def play_card(self, hand, trick, trick_nr, are_hearts_broken, is_spade_queen_played):
@@ -60,8 +58,6 @@ class MonteCarloPlayer(Player):
             legal_state = cards_played + (p,)
             moves_states.append((p, legal_state))
 
-        self.say('plays: {}', self.plays)
-
         percent_wins, move = max(
             (self.wins.get((player, S), 0) /
              self.plays.get((player, S), 1),
@@ -84,7 +80,6 @@ class MonteCarloPlayer(Player):
         return move
 
     def run_simulation(self):
-        # begin = datetime.datetime.utcnow()
         plays, wins = self.plays, self.wins
         current_game = copy.deepcopy(self.game)
         self.redistribute(current_game)
@@ -97,15 +92,11 @@ class MonteCarloPlayer(Player):
             player = current_game.players[current_game.current_player_index]
             legal = current_game.current_trick_valid_cards
 
-            # self.say('legal {}:', legal)
-
             moves_states = []
             cards_played = current_game.cards_played
             for p in legal:
                 legal_state = cards_played + (p,)
                 moves_states.append((p, legal_state))
-
-            # self.say('moves_states {}:', moves_states)
             
             if all(plays.get((player, S)) for p, S in moves_states):
                 # If we have stats on all of the legal moves here, use them.
@@ -127,8 +118,6 @@ class MonteCarloPlayer(Player):
             state = current_game.cards_played
             states_copy.append(state)
 
-            # self.say('state {}:', state)
-
             if expand and (player, state) not in plays:
                 expand = False
                 plays[(player, state)] = 0
@@ -140,9 +129,6 @@ class MonteCarloPlayer(Player):
             winners = current_game.winners()
             if winners:
                 break
-    
-        # self.say('visited_states {}:', visited_states)
-        # self.say('plays: {}', plays)
 
         for player, state in visited_states:
             if (player, state) not in plays:
@@ -150,10 +136,6 @@ class MonteCarloPlayer(Player):
             plays[(player, state)] += 1
             if player in winners:
                 wins[(player, state)] += 1
-
-        # end = datetime.datetime.utcnow()
-        # self.say('end - begin {}', end - begin)
-
 
     def redistribute(self, game):
         cards = []
