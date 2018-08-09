@@ -2,6 +2,7 @@ from players.player import Player
 from random import shuffle
 from card import Suit, Rank, Card, Deck
 from rules import is_card_valid, is_last_trick
+import variables
 
 
 class AdvancedPlayer(Player):
@@ -11,8 +12,8 @@ class AdvancedPlayer(Player):
     It will try to get rid of the most undesirable cards while trying not to win a trick.
     """
 
-    def __init__(self, verbose=True):
-        self.verbose = verbose
+    def __init__(self):
+        self.verbose = variables.verbose_advanced
 
     def say(self, message, *formatargs):
         if self.verbose:

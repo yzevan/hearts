@@ -1,14 +1,15 @@
 from card import Suit, Rank, Card, Deck
 from rules import is_card_valid, card_points
 from players.montecarlo_player import MonteCarloPlayer
+import variables
 
 class Game:
 
-    def __init__(self, players, game_nr, verbose=True):
+    def __init__(self, players, game_nr):
         """
         players is a list of four players
         """
-        self.verbose = verbose
+        self.verbose = variables.verbose_game
         self.players = players
         self.game_nr = game_nr
 

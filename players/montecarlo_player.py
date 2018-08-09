@@ -6,13 +6,14 @@ import datetime
 from random import choice, randint
 from math import log, sqrt
 import copy
+import variables
 
 class MonteCarloPlayer(Player):
 
-    def __init__(self, verbose=True, **kwargs):
-        self.verbose = verbose
+    def __init__(self, **kwargs):
+        self.verbose = variables.verbose_montecarlo
         self.states = []
-        seconds = kwargs.get('time', 2)
+        seconds = kwargs.get('time', variables.montecarlo_time)
         self.calculation_time = datetime.timedelta(seconds=seconds)
         self.max_moves = kwargs.get('max_moves', 100)
         self.wins = {}
