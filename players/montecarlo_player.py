@@ -12,7 +12,6 @@ class MonteCarloPlayer(Player):
 
     def __init__(self, **kwargs):
         self.verbose = variables.verbose_montecarlo
-        self.states = []
         seconds = kwargs.get('time', variables.montecarlo_time)
         self.calculation_time = datetime.timedelta(seconds=seconds)
         self.max_moves = kwargs.get('max_moves', 100)
@@ -28,9 +27,6 @@ class MonteCarloPlayer(Player):
     def setGame(self, game):
         self.game = game
 
-    def update(self, state):
-        self.states.append(state)
-
     def pass_cards(self, hand):
         cards_to_pass = super(MonteCarloPlayer, self).pass_cards(hand)
         return cards_to_pass
@@ -40,8 +36,6 @@ class MonteCarloPlayer(Player):
         player = self.game.players[self.game.current_player_index]
         legal = self.game.current_trick_valid_cards
 
-        if not legal:
-            return
         if len(legal) == 1:
             return legal[0]
 
@@ -85,8 +79,6 @@ class MonteCarloPlayer(Player):
         current_game = copy.deepcopy(self.game)
         self.redistribute(current_game)
         visited_states = set()
-        states_copy = self.states[:]
-        state = states_copy[-1]
 
         expand = True
         for t in range(self.max_moves):
@@ -115,9 +107,6 @@ class MonteCarloPlayer(Player):
                 # self.say('Random play {} in state {}', move, state)
 
             current_game.update_status(move)
-            
-            state = current_game.cards_played
-            states_copy.append(state)
 
             if expand and (player, state) not in plays:
                 expand = False

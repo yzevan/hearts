@@ -105,7 +105,6 @@ class Game:
         if type(player) == MonteCarloPlayer:
             player = MonteCarloPlayer()
             player.setGame(self)
-            player.update(self.cards_played)
             player.setIndex(self.current_player_index)
         played_card = player.play_card(self.player_hands[self.current_player_index], self.current_trick, self.trick_nr, self.are_hearts_broken(), self.is_spade_queen_played())
         self.update_status(played_card)
