@@ -77,7 +77,7 @@ class MonteCarloPlayer(Player):
     def run_simulation(self):
         plays, wins = self.plays, self.wins
         current_game = copy.deepcopy(self.game)
-        self.redistribute(current_game)
+        # self.redistribute(current_game)
         visited_states = set()
 
         expand = True
