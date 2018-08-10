@@ -29,6 +29,7 @@ class Game:
         self.current_trick = []
         self.trick_nr = 0
         self.leading_index = 0
+        self.exposed = False
         for i, player in enumerate(self.players):
             player.setIndex(i)
 
@@ -52,6 +53,7 @@ class Game:
 
         # Perform the card passing.
         self.card_passing()
+        self.exposing()
 
         # Play the tricks
         self.leading_index = self.player_index_with_two_of_clubs()
@@ -60,7 +62,7 @@ class Game:
         for _ in range(13):
             self.play_trick()
 
-        results = count_points(self.cards_taken)
+        results = count_points(self.cards_taken, self.exposed)
         # Print and return the results
         self.say('Results of this game:')
         for i in range(4):
@@ -71,6 +73,12 @@ class Game:
                      )
 
         return tuple(results)
+
+    def exposing(self):
+        for i in range(4):
+            if Card(Suit.hearts, Rank.ace) in self.player_hands[i]:        
+                self.exposed = self.players[i].expose()
+                return
 
     def card_passing(self):
         """
@@ -151,7 +159,7 @@ class Game:
         if len(self.cards_played) != 52:
             return None
         winners = []
-        results = count_points(self.cards_taken)
+        results = count_points(self.cards_taken, self.exposed)
         min_point = min(results)
         for i in range(4):
             if results[i] == min_point:

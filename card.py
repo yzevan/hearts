@@ -37,10 +37,10 @@ class Rank(OrderedEnum):
     ace = 14
 
     def __repr__(self):
-        if self.value <= 10:
+        if self.value < 10:
             return str(self.value)
         else:
-            return ['J', 'Q', 'K', 'A'][self.value - 11]
+            return ['T', 'J', 'Q', 'K', 'A'][self.value - 10]
 
 
 class Card:
