@@ -15,7 +15,7 @@ def is_card_valid(hand, trick, card, trick_nr, are_hearts_broken):
     if trick_nr == 0 and all([card.suit == Suit.hearts for card in hand]):
         return True
 
-    if trick_nr == 0 and card_points(card) > 0:
+    if trick_nr == 0 and card_point(card) > 0:
         return False
 
     # No hearts can be led until hearts are broken
@@ -29,15 +29,29 @@ def is_card_valid(hand, trick, card, trick_nr, are_hearts_broken):
     leading_suit = trick[0].suit
     return card.suit == leading_suit or all([card.suit != leading_suit for card in hand])
 
-def card_points(card):
+def card_point(card):
     """
     Return the number of points given card is worth.
     """
     if card == Card(Suit.spades, Rank.queen):
-        return 13
+        return -13
     if card.suit == Suit.hearts:
-        return 1
+        return -1
     return 0
 
 def is_last_trick(trick):
     return len(trick) == 3
+
+def count_points(cards_taken):
+    """
+    Count the number of points in cards, where cards is a list of Cards.
+    """
+    points = [0, 0, 0, 0]
+    for i, cards in enumerate(cards_taken):
+        points[i] = sum(card_point(card) for card in cards)
+    for i, point in enumerate(points):
+        if point == 26:
+            for x in range(4):
+                points[x] = (0 if x == i else 26)
+            return points
+    return points

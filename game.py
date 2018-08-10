@@ -1,5 +1,5 @@
 from card import Suit, Rank, Card, Deck
-from rules import is_card_valid, card_points
+from rules import is_card_valid, count_points
 from players.montecarlo_player import MonteCarloPlayer
 import variables
 
@@ -60,7 +60,7 @@ class Game:
         for _ in range(13):
             self.play_trick()
 
-        results = self.count_points()
+        results = count_points(self.cards_taken)
         # Print and return the results
         self.say('Results of this game:')
         for i in range(4):
@@ -87,10 +87,10 @@ class Game:
                         self.player_hands[(i + 1) % 4].append(card)
                     elif self.game_nr == 2:
                         self.player_hands[i].remove(card)
-                        self.player_hands[(i + 2) % 4].append(card)
+                        self.player_hands[(i + 3) % 4].append(card)
                     elif self.game_nr == 3:
                         self.player_hands[i].remove(card)
-                        self.player_hands[(i + 3) % 4].append(card)
+                        self.player_hands[(i + 2) % 4].append(card)
 
     def play_trick(self):
         """
@@ -147,26 +147,11 @@ class Game:
 
         return result
 
-    def count_points(self):
-        """
-        Count the number of points in cards, where cards is a list of Cards.
-        """
-        points = [0, 0, 0, 0]
-        for i, cards in enumerate(self.cards_taken):
-            points[i] = sum(card_points(card) for card in cards)
-        for i, point in enumerate(points):
-            if point == 26:
-                self.say('Shoot the moon')
-                for x in range(4):
-                    points[x] = (0 if x == i else 26)
-                return points
-        return points
-
     def winners(self):
         if len(self.cards_played) != 52:
             return None
         winners = []
-        results = self.count_points()
+        results = count_points(self.cards_taken)
         min_point = min(results)
         for i in range(4):
             if results[i] == min_point:

@@ -16,14 +16,15 @@ print('We are playing {} matches in total.'.format(nr_of_matches))
 winning_count = [0, 0, 0, 0]
 for match_nr in range(nr_of_matches):
     scores = (0, 0, 0, 0)
-    game_nr = 0
     print('MATCH {}'.format(match_nr))
-    while(max(scores) < 100):
-        game_nr += 1
+    for game_nr in range(1, 5):
         print('GAME {}'.format(game_nr))
         game = Game(players, game_nr % 4)
         scores = tuple(sum(x) for x in zip(scores, game.play()))
     print(scores)
-    min_index = scores.index(min(scores))
-    winning_count[min_index] += 1
+    max_index = scores.index(max(scores))
+    max_score = max(scores)
+    for i in range(4):
+        if scores[i] == max_score:
+            winning_count[i] += 1
 print(winning_count)
