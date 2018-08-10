@@ -39,12 +39,9 @@ class AdvancedPlayer(Player):
             leading_suit = trick[0].suit
             decision = self.play_card_for_leading_suit(leading_suit, valid_cards, trick, is_spade_queen_played)
         else:
-            if trick_nr == 0:
-                decision = Card(Suit.clubs, Rank.two)
-            else:
-                valid_cards_copy = valid_cards[:]
-                valid_cards_copy.sort(key=self.undesirability)
-                decision = valid_cards_copy[0]
+            valid_cards_copy = valid_cards[:]
+            valid_cards_copy.sort(key=self.undesirability)
+            decision = valid_cards_copy[0]
         self.say('played card: {}', decision)
         return decision
 
