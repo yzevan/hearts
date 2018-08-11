@@ -15,7 +15,7 @@ def is_card_valid(hand, trick, card, trick_nr, are_hearts_broken):
     if trick_nr == 0 and all([card.suit == Suit.hearts for card in hand]):
         return True
 
-    if trick_nr == 0 and card_point(card, False) < 0:
+    if trick_nr == 0 and card_point(card) < 0:
         return False
 
     # No hearts can be led until hearts are broken
@@ -29,7 +29,7 @@ def is_card_valid(hand, trick, card, trick_nr, are_hearts_broken):
     leading_suit = trick[0].suit
     return card.suit == leading_suit or all([card.suit != leading_suit for card in hand])
 
-def card_point(card, exposed):
+def card_point(card, exposed = False):
     """
     Return the number of points given card is worth.
     """
