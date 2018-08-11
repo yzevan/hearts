@@ -48,13 +48,16 @@ def count_points(cards_taken, exposed):
     """
     points = [0, 0, 0, 0]
     shooting_the_moon = False
+    club_ten_holder = 0
     for i, cards in enumerate(cards_taken):
         points[i] = sum(card_point(card, exposed) for card in cards)
+        if (Card(Suit.clubs, Rank.ten) in cards):
+            points[i] = points[i] * 2
+            club_ten_holder = i
         if ((not shooting_the_moon) and all([(card.suit == Suit.hearts or card == Card(Suit.spades, Rank.queen)) for card in cards])):
             shooting_the_moon = True
             shooting_the_moon_player = i
     if shooting_the_moon:
-        winning_point = points[shooting_the_moon_player]
-        points[i] = (0 if i == shooting_the_moon_player else winning_point)
-    # print(points)
+        winning_point = points[shooting_the_moon_player] * 2
+        points[i] = (0 if i == shooting_the_moon_player else (winning_point * 2 if i == club_ten_holder else winning_point))
     return points
