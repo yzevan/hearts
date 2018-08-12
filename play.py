@@ -23,7 +23,8 @@ def doListen():
             result = ws.recv()
             msg = json.loads(result)
             takeAction(ws, msg)
-    except Exception:
+    except Exception as e:
+        logging.error(e)
         doListen()
 
 
