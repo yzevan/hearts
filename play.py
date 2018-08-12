@@ -2,7 +2,7 @@ import time
 import json
 from websocket import create_connection
 import variables
-import utils
+from utils import init_logger
 import logging
 import agent
 
@@ -22,13 +22,13 @@ def doListen():
         while True:
             result = ws.recv()
             msg = json.loads(result)
-            agent.takeAction(ws, msg, player_name)
+            agent.takeAction(ws, msg)
     except Exception:
         doListen()
 
 
 if __name__ == '__main__':
-    utils.init_logger()
+    init_logger()
     try:
         doListen()
     except KeyboardInterrupt:
