@@ -1,14 +1,14 @@
 import sys
 from game import Game
 from players.stupid_player import StupidPlayer
-from players.simple_player import SimplePlayer
+from players.min_player import MinPlayer
 from players.advanced_player import AdvancedPlayer
 from players.montecarlo_player import MonteCarloPlayer
 import variables
 
 # These four players are playing the game
-players = [AdvancedPlayer(), MonteCarloPlayer(), SimplePlayer(), SimplePlayer()]
-# players = [AdvancedPlayer(), SimplePlayer(), SimplePlayer(), SimplePlayer()]
+players = [AdvancedPlayer(), MonteCarloPlayer(), MinPlayer(), StupidPlayer()]
+# players = [AdvancedPlayer(), MinPlayer(), MinPlayer(), StupidPlayer()]
 
 # We are simulating n games accumulating a total score
 nr_of_matches = variables.nr_of_matches

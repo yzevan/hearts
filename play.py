@@ -4,7 +4,7 @@ from websocket import create_connection
 import variables
 from utils import init_logger
 import logging
-import agent
+from agent import takeAction
 
 ws = ""
 player_name = variables.player_name
@@ -22,7 +22,7 @@ def doListen():
         while True:
             result = ws.recv()
             msg = json.loads(result)
-            agent.takeAction(ws, msg)
+            takeAction(ws, msg)
     except Exception:
         doListen()
 

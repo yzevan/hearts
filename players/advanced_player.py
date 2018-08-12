@@ -28,12 +28,8 @@ class AdvancedPlayer(Player):
         self.say('Player {} Cards to pass: {}', self, cards_to_pass)
         return cards_to_pass
                     
-    def play_card(self, hand, trick, trick_nr, are_hearts_broken, is_spade_queen_played):
-        if trick_nr == 0:
-            hand.sort()
-        self.say('Hand: {}', hand)
+    def play_card(self, valid_cards, trick, are_hearts_broken, is_spade_queen_played):
         self.say('Trick: {}', trick)
-        valid_cards = self.all_valid_cards(hand, trick, trick_nr, are_hearts_broken)
         self.say('Valid cards: {}', valid_cards)
         if trick:
             leading_suit = trick[0].suit

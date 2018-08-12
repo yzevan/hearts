@@ -52,7 +52,7 @@ class Player:
     def cards_with_suit(self, suit, cards):
         return [card for card in cards if card.suit == suit]
 
-    def play_card(self, hand, trick, trick_nr, are_hearts_broken, is_spade_queen_played):
+    def play_card(self, valid_cards, trick, are_hearts_broken, is_spade_queen_played):
         """
         Must return a card from the given hand.
         trick is a list of cards played so far.

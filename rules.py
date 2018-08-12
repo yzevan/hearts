@@ -61,3 +61,15 @@ def count_points(cards_taken, exposed):
         winning_point = points[shooting_the_moon_player] * 2
         points[i] = (0 if i == shooting_the_moon_player else (winning_point * 2 if i == club_ten_holder else winning_point))
     return points
+
+def are_hearts_broken(cards):
+    """
+    Return True if the hearts are broken yet, otherwise return False.
+    """
+    return any(card.suit == Suit.hearts for card in cards)
+
+def is_spade_queen_played(cards):
+    """
+    Return True if the spade queen is played yet, otherwise return False.
+    """
+    return Card(Suit.spades, Rank.queen) in cards

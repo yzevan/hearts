@@ -26,12 +26,8 @@ class MonteCarloPlayer(Player):
 
     def setGame(self, game):
         self.game = game
-
-    def pass_cards(self, hand):
-        cards_to_pass = super(MonteCarloPlayer, self).pass_cards(hand)
-        return cards_to_pass
-
-    def play_card(self, hand, trick, trick_nr, are_hearts_broken, is_spade_queen_played):
+        
+    def play_card(self, valid_cards, trick, are_hearts_broken, is_spade_queen_played):
         self.max_depth = 0
         player = self.game.players[self.game.current_player_index]
         legal = self.game.current_trick_valid_cards

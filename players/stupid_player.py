@@ -1,5 +1,5 @@
 from players.player import Player
-from random import shuffle
+from random import sample, choice
 from card import Suit, Rank, Card, Deck
 from rules import is_card_valid
 
@@ -12,13 +12,7 @@ class StupidPlayer(Player):
     """
 
     def pass_cards(self, hand):
-        return hand[:3]
+        return sample(hand, 3)
 
-    def play_card(self, hand, trick, trick_nr, are_hearts_broken, is_spade_queen_played):
-        # Play first card that is valid
-        for card in hand:
-            if is_card_valid(hand, trick, card, trick_nr, are_hearts_broken):
-                return card
-        raise AssertionError(
-            'Apparently there is no valid card that can be played. This should not happen.'
-        )
+    def play_card(self, valid_card, trick, are_hearts_broken, is_spade_queen_played):
+        return choice(valid_card)

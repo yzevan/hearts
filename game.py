@@ -1,5 +1,5 @@
 from card import Suit, Rank, Card, Deck
-from rules import is_card_valid, count_points
+from rules import is_card_valid, count_points, are_hearts_broken, is_spade_queen_played
 from players.montecarlo_player import MonteCarloPlayer
 import variables
 
@@ -34,16 +34,10 @@ class Game:
             player.setIndex(i)
 
     def are_hearts_broken(self):
-        """
-        Return True if the hearts are broken yet, otherwise return False.
-        """
-        return any(card.suit == Suit.hearts for card in self.cards_played)
+        return are_hearts_broken(self.cards_played)
 
     def is_spade_queen_played(self):
-        """
-        Return True if the spade queen is played yet, otherwise return False.
-        """
-        return Card(Suit.spades, Rank.queen) in self.cards_played
+        return is_spade_queen_played(self.cards_played)
 
     def play(self):
         """
@@ -99,6 +93,8 @@ class Game:
                     elif self.game_nr == 3:
                         self.player_hands[i].remove(card)
                         self.player_hands[(i + 2) % 4].append(card)
+            for i in range(4):
+                self.player_hands[i].sort()
 
     def play_trick(self):
         """
@@ -114,7 +110,7 @@ class Game:
             player = MonteCarloPlayer()
             player.setGame(self)
             player.setIndex(self.current_player_index)
-        played_card = player.play_card(self.player_hands[self.current_player_index], self.current_trick, self.trick_nr, self.are_hearts_broken(), self.is_spade_queen_played())
+        played_card = player.play_card(self.current_trick_valid_cards, self.current_trick, self.are_hearts_broken(), self.is_spade_queen_played())
         self.update_status(played_card)
 
     def update_status(self, played_card):
