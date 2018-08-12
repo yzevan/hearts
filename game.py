@@ -21,7 +21,7 @@ class Game:
 
     def new_game(self):
         deck = Deck()
-        self.player_hands = tuple(deck.deal())
+        self.player_hands = list(deck.deal())
         self.cards_taken = ([], [], [], [])
         self.current_player_index = 0
         self.current_trick_valid_cards = []

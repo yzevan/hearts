@@ -4,12 +4,10 @@ from websocket import create_connection
 import variables
 import utils
 import logging
+import agent
 
 ws = ""
 player_name = variables.player_name
-
-def takeAction(action, player_name, data):
-    pass
 
 def doListen():
     try:
@@ -24,9 +22,7 @@ def doListen():
         while True:
             result = ws.recv()
             msg = json.loads(result)
-            event_name = msg["eventName"]
-            data = msg["data"]
-            takeAction(event_name, player_name, data)
+            agent.takeAction(ws, msg, player_name)
     except Exception:
         doListen()
 
@@ -36,4 +32,4 @@ if __name__ == '__main__':
     try:
         doListen()
     except KeyboardInterrupt:
-        logging.error("Program exit by key board")
+        logging.error("Exit by keyboard")
