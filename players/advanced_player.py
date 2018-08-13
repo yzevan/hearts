@@ -3,6 +3,7 @@ from random import shuffle
 from card import Suit, Rank, Card, Deck
 from rules import is_card_valid, is_last_trick
 import variables
+import logging
 
 
 class AdvancedPlayer(Player):
@@ -17,7 +18,7 @@ class AdvancedPlayer(Player):
 
     def say(self, message, *formatargs):
         if self.verbose:
-            print(message.format(*formatargs))
+            logging.debug(message.format(*formatargs))
 
     def undesirability(self, card):
         return card.rank.value

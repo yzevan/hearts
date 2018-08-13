@@ -2,6 +2,8 @@ from card import Suit, Rank, Card, Deck
 from rules import is_card_valid, count_points, are_hearts_broken, is_spade_queen_played
 from players.montecarlo_player import MonteCarloPlayer
 import variables
+import logging
+
 
 class Game:
 
@@ -17,7 +19,7 @@ class Game:
 
     def say(self, message, *formatargs):
         if self.verbose:
-            print(message.format(*formatargs))
+            logging.debug(message.format(*formatargs))
 
     def new_game(self):
         deck = Deck()

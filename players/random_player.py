@@ -4,7 +4,7 @@ from card import Suit, Rank, Card, Deck
 from rules import is_card_valid
 
 
-class StupidPlayer(Player):
+class RandomPlayer(Player):
 
     """
     Most simple player you can think of.

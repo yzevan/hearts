@@ -7,6 +7,8 @@ from random import choice, randint
 from math import log, sqrt
 import copy
 import variables
+import logging
+
 
 class MonteCarloPlayer(Player):
 
@@ -22,7 +24,7 @@ class MonteCarloPlayer(Player):
 
     def say(self, message, *formatargs):
         if self.verbose:
-            print(message.format(*formatargs))
+            logging.debug(message.format(*formatargs))
 
     def setGame(self, game):
         self.game = game
