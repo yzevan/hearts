@@ -81,8 +81,11 @@ def all_valid_cards(hand, trick, trick_nr, are_hearts_broken):
     return [card for card in hand
                     if is_card_valid(hand, trick, card, trick_nr, are_hearts_broken)]
 
-def secondary_choice_needed(decision, target, cards):
-    return decision == target and len(cards) > 1
+def secondary_choice_needed(decision, cards):
+    return decision in [Card(Suit.spades, Rank.queen), Card(Suit.clubs, Rank.ten)] and len(cards) > 1
+
+def contains_unwanted_cards(cards):
+    cards_with_suit(Suit.hearts, cards) or Card(Suit.spades, Rank.queen) in cards or Card(Suit.clubs, Rank.ten) in cards
 
 def str_to_card(s):
     str_to_suit = {

@@ -1,7 +1,7 @@
 from players.player import Player
 from random import shuffle
 from card import Suit, Rank, Card, Deck
-from rules import is_card_valid, is_last_trick, cards_with_suit, secondary_choice_needed
+from rules import is_card_valid, is_last_trick, cards_with_suit, secondary_choice_needed, contains_unwanted_cards
 import variables
 import logging
 
@@ -40,15 +40,17 @@ class AdvancedPlayer(Player):
         cards_with_leading_suit = cards_with_suit(suit, cards)
         if cards_with_leading_suit:
             if is_last_trick(trick):
-                if cards_with_suit(Suit.hearts, trick) or Card(Suit.spades, Rank.queen) in trick:
+                if contains_unwanted_cards(trick):
                     decision = self.best_available(suit, cards_with_leading_suit, trick)
                 else:
-                    decision = cards[-1] if not secondary_choice_needed(cards[-1], Card(Suit.spades, Rank.queen), cards) else cards[-2]
+                    decision = cards[-1] if not secondary_choice_needed(cards[-1], cards) else cards[-2]
             else:
                 decision = self.best_available(suit, cards_with_leading_suit, trick)
         else:
             if Card(Suit.spades, Rank.queen) in cards:
                 decision = Card(Suit.spades, Rank.queen)
+            if Card(Suit.clubs, Rank.ten) in cards:
+                decision = Card(Suit.clubs, Rank.ten)
             elif Card(Suit.spades, Rank.ace) in cards and not is_spade_queen_played:
                 decision = Card(Suit.spades, Rank.ace)
             elif Card(Suit.spades, Rank.king) in cards and not is_spade_queen_played:
@@ -67,7 +69,7 @@ class AdvancedPlayer(Player):
             decision = safe_cards[-1]
         else:
             if is_last_trick(trick):
-                decision = cards[-1] if not secondary_choice_needed(cards[-1], Card(Suit.spades, Rank.queen), cards) else cards[-2]
+                decision = cards[-1] if not secondary_choice_needed(cards[-1], cards) else cards[-2]
             else:
-                decision = cards[0] if not secondary_choice_needed(cards[0], Card(Suit.spades, Rank.queen), cards) else cards[1]
+                decision = cards[0] if not secondary_choice_needed(cards[0], cards) else cards[1]
         return decision

@@ -30,13 +30,16 @@ class Player:
         hand_copy = hand[:]
         cards_to_pass = []
         for _ in range(3):
-            spades_in_hand = [card for card in hand_copy if card.suit == Suit.spades]
+            spades_in_hand = cards_with_suit(Suit.spades, hand_copy)
+            clubs_in_hand = cards_with_suit(Suit.clubs, hand_copy)
             if len(spades_in_hand) < 6 and Card(Suit.spades, Rank.queen) in spades_in_hand:
                 card_to_pass = Card(Suit.spades, Rank.queen)
             elif len(spades_in_hand) < 6 and Card(Suit.spades, Rank.ace) in spades_in_hand:
                 card_to_pass = Card(Suit.spades, Rank.ace)
             elif len(spades_in_hand) < 6 and Card(Suit.spades, Rank.king) in spades_in_hand:
                 card_to_pass = Card(Suit.spades, Rank.king)
+            elif len(clubs_in_hand) < 6 and Card(Suit.clubs, Rank.ten) in clubs_in_hand:
+                card_to_pass = Card(Suit.clubs, Rank.ten)
             else:
                 other_suits_in_hand = [cards_with_suit(Suit.clubs, hand_copy), 
                                        cards_with_suit(Suit.diamonds, hand_copy),
