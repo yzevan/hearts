@@ -23,7 +23,7 @@ class Player:
         self.index = index
 
     def expose(self):
-        return True
+        return False
 
     def pass_cards(self, hand):
         """Must return a list of three cards from the given hand."""

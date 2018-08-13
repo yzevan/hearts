@@ -36,7 +36,7 @@ def card_point(card, exposed = False):
     if card == Card(Suit.spades, Rank.queen):
         return -13
     if card.suit == Suit.hearts:
-        return (-2 if exposed else -1)
+        return -2 if exposed else -1
     return 0
 
 def is_last_trick(trick):
@@ -80,6 +80,9 @@ def cards_with_suit(suit, cards):
 def all_valid_cards(hand, trick, trick_nr, are_hearts_broken):
     return [card for card in hand
                     if is_card_valid(hand, trick, card, trick_nr, are_hearts_broken)]
+
+def secondary_choice_needed(decision, target, cards):
+    return decision == target and len(cards) > 1
 
 def str_to_card(s):
     str_to_suit = {

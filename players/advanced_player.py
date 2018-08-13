@@ -1,7 +1,7 @@
 from players.player import Player
 from random import shuffle
 from card import Suit, Rank, Card, Deck
-from rules import is_card_valid, is_last_trick, cards_with_suit
+from rules import is_card_valid, is_last_trick, cards_with_suit, secondary_choice_needed
 import variables
 import logging
 
@@ -43,9 +43,7 @@ class AdvancedPlayer(Player):
                 if cards_with_suit(Suit.hearts, trick) or Card(Suit.spades, Rank.queen) in trick:
                     decision = self.best_available(suit, cards_with_leading_suit, trick)
                 else:
-                    decision = cards_with_leading_suit[-1]
-                if decision == Card(Suit.spades, Rank.queen) and len(cards_with_leading_suit) > 1:
-                    decision = cards_with_leading_suit[-2]
+                    decision = cards[-1] if not secondary_choice_needed(cards[-1], Card(Suit.spades, Rank.queen), cards) else cards[-2]
             else:
                 decision = self.best_available(suit, cards_with_leading_suit, trick)
         else:
@@ -69,9 +67,7 @@ class AdvancedPlayer(Player):
             decision = safe_cards[-1]
         else:
             if is_last_trick(trick):
-                decision = cards[-1]
+                decision = cards[-1] if not secondary_choice_needed(cards[-1], Card(Suit.spades, Rank.queen), cards) else cards[-2]
             else:
-                decision = cards[0]
-                if decision == Card(Suit.spades, Rank.queen) and len(cards) > 1:
-                    decision = cards[1]
+                decision = cards[0] if not secondary_choice_needed(cards[0], Card(Suit.spades, Rank.queen), cards) else cards[1]
         return decision
