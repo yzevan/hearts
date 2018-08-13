@@ -1,11 +1,11 @@
 import json
-from utils import set_data, str_to_card
+from utils import set_data
 import logging
 from copy import deepcopy
 import variables
 from players.advanced_player import AdvancedPlayer
 from players.montecarlo_player import MonteCarloPlayer
-from rules import are_hearts_broken, is_spade_queen_played
+from rules import are_hearts_broken, is_spade_queen_played, str_to_card
 
 PLAYER_STATUS = {
     "playerNumber": 0,

@@ -1,5 +1,5 @@
 from card import Suit, Rank, Card, Deck
-from rules import is_card_valid, count_points, are_hearts_broken, is_spade_queen_played
+from rules import is_card_valid, count_points, are_hearts_broken, is_spade_queen_played, all_valid_cards
 from players.montecarlo_player import MonteCarloPlayer
 import variables
 import logging
@@ -54,7 +54,7 @@ class Game:
         # Play the tricks
         self.leading_index = self.player_index_with_two_of_clubs()
         self.current_player_index = self.leading_index
-        self.current_trick_valid_cards = self.players[self.current_player_index].all_valid_cards(self.player_hands[self.current_player_index], self.current_trick, self.trick_nr, self.are_hearts_broken())
+        self.current_trick_valid_cards = all_valid_cards(self.player_hands[self.current_player_index], self.current_trick, self.trick_nr, self.are_hearts_broken())
         for _ in range(13):
             self.play_trick()
 
@@ -129,7 +129,7 @@ class Game:
             # self.say('Cards played: {}', self.cards_played)
             self.current_trick = []
             self.trick_nr += 1
-        self.current_trick_valid_cards = self.players[self.current_player_index].all_valid_cards(self.player_hands[self.current_player_index], self.current_trick, self.trick_nr, self.are_hearts_broken())
+        self.current_trick_valid_cards = all_valid_cards(self.player_hands[self.current_player_index], self.current_trick, self.trick_nr, self.are_hearts_broken())
             
     def player_index_with_two_of_clubs(self):
         two_of_clubs = Card(Suit.clubs, Rank.two)

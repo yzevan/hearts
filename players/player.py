@@ -1,7 +1,7 @@
 """This module containts the abstract class Player and some implementations."""
 from random import shuffle
 from card import Suit, Rank, Card, Deck
-from rules import is_card_valid
+from rules import is_card_valid, cards_with_suit
 
 
 class Player:
@@ -38,9 +38,9 @@ class Player:
             elif len(spades_in_hand) < 6 and Card(Suit.spades, Rank.king) in spades_in_hand:
                 card_to_pass = Card(Suit.spades, Rank.king)
             else:
-                other_suits_in_hand = [self.cards_with_suit(Suit.clubs, hand_copy), 
-                                       self.cards_with_suit(Suit.diamonds, hand_copy),
-                                       self.cards_with_suit(Suit.hearts, hand_copy)]
+                other_suits_in_hand = [cards_with_suit(Suit.clubs, hand_copy), 
+                                       cards_with_suit(Suit.diamonds, hand_copy),
+                                       cards_with_suit(Suit.hearts, hand_copy)]
                 other_suits_in_hand.sort(key=len, reverse=True)
                 other_suits_in_hand_flatten = [card for cards in other_suits_in_hand for card in cards]
                 other_suits_in_hand_flatten.sort(key=lambda card: card.rank.value)
@@ -48,9 +48,6 @@ class Player:
             cards_to_pass.append(card_to_pass)
             hand_copy.remove(card_to_pass)
         return cards_to_pass
-    
-    def cards_with_suit(self, suit, cards):
-        return [card for card in cards if card.suit == suit]
 
     def play_card(self, valid_cards, trick, are_hearts_broken, is_spade_queen_played):
         """
@@ -61,7 +58,3 @@ class Player:
         trick_nr is an integer indicating the current trick number, starting with 0.
         """
         return NotImplemented
-
-    def all_valid_cards(self, hand, trick, trick_nr, are_hearts_broken):
-        return [card for card in hand
-                       if is_card_valid(hand, trick, card, trick_nr, are_hearts_broken)]

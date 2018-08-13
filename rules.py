@@ -73,3 +73,34 @@ def is_spade_queen_played(cards):
     Return True if the spade queen is played yet, otherwise return False.
     """
     return Card(Suit.spades, Rank.queen) in cards
+
+def cards_with_suit(suit, cards):
+    return [card for card in cards if card.suit == suit]
+    
+def all_valid_cards(hand, trick, trick_nr, are_hearts_broken):
+    return [card for card in hand
+                    if is_card_valid(hand, trick, card, trick_nr, are_hearts_broken)]
+
+def str_to_card(s):
+    str_to_suit = {
+        "C": Suit.clubs,
+        "D": Suit.diamonds,
+        "S": Suit.spades,
+        "H": Suit.hearts
+    }
+    str_to_rank = {
+        "2": Rank.two,
+        "3": Rank.three,
+        "4": Rank.four,
+        "5": Rank.five,
+        "6": Rank.six,
+        "7": Rank.seven,
+        "8": Rank.eight,
+        "9": Rank.nine,
+        "T": Rank.ten,
+        "J": Rank.jack,
+        "Q": Rank.queen,
+        "K": Rank.king,
+        "A": Rank.ace
+    }
+    return Card(str_to_suit[s[1]], str_to_rank[s[0]])

@@ -1,7 +1,7 @@
 from players.player import Player
 from random import shuffle
 from card import Suit, Rank, Card, Deck
-from rules import is_card_valid, is_last_trick
+from rules import is_card_valid, is_last_trick, cards_with_suit
 import variables
 import logging
 
@@ -22,12 +22,6 @@ class AdvancedPlayer(Player):
 
     def undesirability(self, card):
         return card.rank.value
-
-    def pass_cards(self, hand):
-        self.say('Player {} Hand before passing: {}', self, hand)
-        cards_to_pass = super(AdvancedPlayer, self).pass_cards(hand)
-        self.say('Player {} Cards to pass: {}', self, cards_to_pass)
-        return cards_to_pass
                     
     def play_card(self, valid_cards, trick, are_hearts_broken, is_spade_queen_played):
         self.say('Trick: {}', trick)
@@ -43,10 +37,10 @@ class AdvancedPlayer(Player):
         return decision
 
     def play_card_for_leading_suit(self, suit, cards, trick, is_spade_queen_played):
-        cards_with_leading_suit = self.cards_with_suit(suit, cards)
+        cards_with_leading_suit = cards_with_suit(suit, cards)
         if cards_with_leading_suit:
             if is_last_trick(trick):
-                if self.cards_with_suit(Suit.hearts, trick) or Card(Suit.spades, Rank.queen) in trick:
+                if cards_with_suit(Suit.hearts, trick) or Card(Suit.spades, Rank.queen) in trick:
                     decision = self.best_available(suit, cards_with_leading_suit, trick)
                 else:
                     decision = cards_with_leading_suit[-1]
@@ -68,7 +62,7 @@ class AdvancedPlayer(Player):
         return decision
 
     def best_available(self, suit, cards, trick):
-        cards_with_suit_in_trick = self.cards_with_suit(suit, trick)
+        cards_with_suit_in_trick = cards_with_suit(suit, trick)
         max_rank_in_leading_suit = max([card.rank for card in cards_with_suit_in_trick])
         safe_cards = [card for card in cards if card.rank < max_rank_in_leading_suit]
         if safe_cards:
