@@ -1,5 +1,5 @@
 from card import Suit, Rank, Card, Deck
-from rules import is_card_valid, count_points, are_hearts_broken, is_spade_queen_played, all_valid_cards
+from rules import is_card_valid, count_points, all_valid_cards
 from players.montecarlo_player import MonteCarloPlayer
 import variables
 import logging
@@ -32,14 +32,10 @@ class Game:
         self.trick_nr = 0
         self.leading_index = 0
         self.exposed = False
+        self.are_hearts_broken = False
+        self.is_spade_queen_played = False
         for i, player in enumerate(self.players):
             player.setIndex(i)
-
-    def are_hearts_broken(self):
-        return are_hearts_broken(self.cards_played)
-
-    def is_spade_queen_played(self):
-        return is_spade_queen_played(self.cards_played)
 
     def play(self):
         """
@@ -54,7 +50,7 @@ class Game:
         # Play the tricks
         self.leading_index = self.player_index_with_two_of_clubs()
         self.current_player_index = self.leading_index
-        self.current_trick_valid_cards = all_valid_cards(self.player_hands[self.current_player_index], self.current_trick, self.trick_nr, self.are_hearts_broken())
+        self.current_trick_valid_cards = all_valid_cards(self.player_hands[self.current_player_index], self.current_trick, self.trick_nr, self.are_hearts_broken)
         for _ in range(13):
             self.play_trick()
 
@@ -112,13 +108,17 @@ class Game:
             player = MonteCarloPlayer()
             player.setGame(self)
             player.setIndex(self.current_player_index)
-        played_card = player.play_card(self.current_trick_valid_cards, self.current_trick, self.are_hearts_broken(), self.is_spade_queen_played())
+        played_card = player.play_card(self.current_trick_valid_cards, self.current_trick, self.are_hearts_broken, self.is_spade_queen_played)
         self.update_status(played_card)
 
     def update_status(self, played_card):
         self.current_trick.append(played_card)
         self.player_hands[self.current_player_index].remove(played_card)
         self.cards_played += (played_card,)
+        if not self.are_hearts_broken and played_card.suit == Suit.hearts:
+            self.are_hearts_broken = True
+        if not self.is_spade_queen_played and played_card == Card(Suit.spades, Rank.queen):
+            self.is_spade_queen_played = True
         self.current_player_index = (self.current_player_index + 1) % 4
         if len(self.current_trick) == 4:
             winning_index = self.winning_index(self.current_trick)
@@ -129,7 +129,7 @@ class Game:
             # self.say('Cards played: {}', self.cards_played)
             self.current_trick = []
             self.trick_nr += 1
-        self.current_trick_valid_cards = all_valid_cards(self.player_hands[self.current_player_index], self.current_trick, self.trick_nr, self.are_hearts_broken())
+        self.current_trick_valid_cards = all_valid_cards(self.player_hands[self.current_player_index], self.current_trick, self.trick_nr, self.are_hearts_broken)
             
     def player_index_with_two_of_clubs(self):
         two_of_clubs = Card(Suit.clubs, Rank.two)

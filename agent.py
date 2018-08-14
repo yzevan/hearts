@@ -5,7 +5,8 @@ from copy import deepcopy
 import variables
 from players.advanced_player import AdvancedPlayer
 from players.montecarlo_player import MonteCarloPlayer
-from rules import are_hearts_broken, is_spade_queen_played, str_to_card
+from rules import str_to_card
+from card import Suit, Rank, Card
 
 PLAYER_STATUS = {
     "playerNumber": 0,
@@ -150,8 +151,10 @@ def set_turn_end(data):
     logging.debug("Turn card: {0}".format(data["turnCard"]))
     GAME_STATUS["cards_played"] += (turnCard, )
     GAME_STATUS["trick"].append(turnCard)
-    GAME_STATUS["are_hearts_broken"] = GAME_STATUS["are_hearts_broken"] or are_hearts_broken(GAME_STATUS["cards_played"])
-    GAME_STATUS["is_spade_queen_played"] = GAME_STATUS["is_spade_queen_played"] or is_spade_queen_played(GAME_STATUS["cards_played"])
+    if not GAME_STATUS["are_hearts_broken"] and turnCard.suit == Suit.hearts:
+        GAME_STATUS["are_hearts_broken"] = True
+    if not GAME_STATUS["is_spade_queen_played"] and turnCard == Card(Suit.spades, Rank.queen):
+        GAME_STATUS["is_spade_queen_played"] = True
 
 def do_play_card(ws, data):
     fields_self = ["cards", "candidateCards"]
