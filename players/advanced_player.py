@@ -1,7 +1,7 @@
 from players.player import Player
 from random import shuffle
 from card import Suit, Rank, Card, Deck
-from rules import is_card_valid, is_last_turn, cards_with_suit, secondary_choice_needed, contains_unwanted_cards
+from rules import is_card_valid, is_last_turn, cards_with_suit, secondary_choice_needed, contains_unwanted_cards, get_largest_rank_with_smallest_length
 import variables
 import logging
 
@@ -51,8 +51,7 @@ class AdvancedPlayer(Player):
                 decision = Card(Suit.spades, Rank.king)
             else:
                 cards_copy = cards[:]
-                cards_copy.sort(key=self.undesirability)
-                decision = cards_copy[-1]
+                decision = get_largest_rank_with_smallest_length(cards_copy)
         return decision
 
     def best_available(self, suit, cards, trick):

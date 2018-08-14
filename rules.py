@@ -87,6 +87,15 @@ def secondary_choice_needed(decision, cards):
 def contains_unwanted_cards(cards):
     return (len(cards_with_suit(Suit.hearts, cards)) > 0) or (Card(Suit.spades, Rank.queen) in cards) or (Card(Suit.clubs, Rank.ten) in cards)
 
+def get_largest_rank_with_smallest_length(cards, suits = "all"):
+    if suits == "all":
+        suits = [Suit.clubs, Suit.diamonds, Suit.spades, Suit.hearts]
+    cards_for_suit = [cards_with_suit(suit, cards) for suit in suits]
+    cards_for_suit.sort(key=len, reverse=True)
+    cards_for_suit_flatten = [card for cards in cards_for_suit for card in cards]
+    cards_for_suit_flatten.sort(key=lambda card: card.rank.value)
+    return cards_for_suit_flatten[-1]
+
 def str_to_card(s):
     str_to_suit = {
         "C": Suit.clubs,
