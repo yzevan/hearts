@@ -29,7 +29,7 @@ class MonteCarloPlayer(Player):
     def setGame(self, game):
         self.game = game
         
-    def play_card(self, valid_cards, trick, are_hearts_broken, is_spade_queen_played):
+    def play_card(self, valid_cards, trick, out_of_suits, remaining_players, are_hearts_broken, is_spade_queen_played):
         self.max_depth = 0
         player = self.game.players[self.game.current_player_index]
         legal = self.game.current_trick_valid_cards

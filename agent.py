@@ -40,7 +40,8 @@ GAME_STATUS = {
     "are_hearts_broken": False,
     "is_spade_queen_played": False,
     "trick": [],
-    "roundPlayer": ""
+    "roundPlayer": "",
+    "out_of_suits": {},
 }
 
 MY_NAME = variables.player_name
@@ -90,6 +91,9 @@ def set_new_deal(data):
     fields_game = ["dealNumber"]
     fields_all = ["playerNumber", "playerName", "gameScore", "dealScore", "cardsCount", "receivedFrom", "exposedCards", "shootingTheMoon", "roundCard"]
     fields_self = ["scoreCards", "cards", "pickedCards", "receivedCards", "candidateCards"]
+    for player in data["players"]:
+        playerName = player["playerName"]
+        GAME_STATUS["out_of_suits"][playerName] = {Suit.clubs: False, Suit.diamonds: False, Suit.spades: False, Suit.hearts: False}
     set_data_for_game(data, fields_game = fields_game, fields_all = fields_all, fields_self = fields_self)
 
 def do_pass_cards(ws, data):
@@ -155,6 +159,9 @@ def set_turn_end(data):
         GAME_STATUS["are_hearts_broken"] = True
     if not GAME_STATUS["is_spade_queen_played"] and turnCard == Card(Suit.spades, Rank.queen):
         GAME_STATUS["is_spade_queen_played"] = True
+    leading_suit = GAME_STATUS["trick"][0].suit
+    if not GAME_STATUS["out_of_suits"][GAME_STATUS["turnPlayer"]][leading_suit] and str_to_card(GAME_STATUS["turnCard"]).suit != leading_suit:
+        GAME_STATUS["out_of_suits"][GAME_STATUS["turnPlayer"]][leading_suit] = True
 
 def do_play_card(ws, data):
     fields_self = ["cards", "candidateCards"]
@@ -165,7 +172,8 @@ def do_play_card(ws, data):
     logging.debug("--- {0} ---".format(event_name))
     logging.debug("Candidate cards: {0}".format(candidateCards))
     logging.debug("Trick: {0}".format(GAME_STATUS["trick"]))
-    decision = PLAYER.play_card(candidateCards, GAME_STATUS["trick"], GAME_STATUS["are_hearts_broken"], GAME_STATUS["is_spade_queen_played"])
+    remaining_players = GAME_STATUS["roundPlayers"][((GAME_STATUS["roundPlayers"].index(GAME_STATUS["turnPlayer"]) + 1) % 4):]
+    decision = PLAYER.play_card(candidateCards, GAME_STATUS["trick"], GAME_STATUS["out_of_suits"], remaining_players, GAME_STATUS["are_hearts_broken"], GAME_STATUS["is_spade_queen_played"])
     result = str(decision)
     ws.send(json.dumps({
         "eventName": event_name,
