@@ -39,7 +39,7 @@ def card_point(card, exposed = False):
         return -2 if exposed else -1
     return 0
 
-def is_last_trick(trick):
+def is_last_turn(trick):
     return len(trick) == 3
 
 def count_points(cards_taken, exposed):

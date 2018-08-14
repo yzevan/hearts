@@ -1,7 +1,7 @@
 from players.player import Player
 from random import shuffle
 from card import Suit, Rank, Card, Deck
-from rules import is_card_valid, is_last_trick, cards_with_suit, secondary_choice_needed, contains_unwanted_cards
+from rules import is_card_valid, is_last_turn, cards_with_suit, secondary_choice_needed, contains_unwanted_cards
 import variables
 import logging
 
@@ -56,7 +56,7 @@ class AdvancedPlayer(Player):
         return decision
 
     def best_available(self, suit, cards, trick):
-        if is_last_trick(trick) and not contains_unwanted_cards(trick):
+        if is_last_turn(trick) and not contains_unwanted_cards(trick):
             if not secondary_choice_needed(cards[-1], cards) or any(card.rank > cards[-1].rank for card in cards):
                 decision = cards[-1]
             else:
@@ -68,7 +68,7 @@ class AdvancedPlayer(Player):
             if safe_cards:
                 decision = safe_cards[-1]
             else:
-                if is_last_trick(trick):
+                if is_last_turn(trick):
                     decision = cards[-1] if not secondary_choice_needed(cards[-1], cards) else cards[-2]
                 else:
                     decision = cards[0] if not secondary_choice_needed(cards[0], cards) else cards[1]
