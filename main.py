@@ -11,8 +11,10 @@ import logging
 
 def play():
     # These four players are playing the game
-    players = [AdvancedPlayer(), MonteCarloPlayer(), MinPlayer(), RandomPlayer()]
-    # players = [AdvancedPlayer(), MinPlayer(), MinPlayer(), RandomPlayer()]
+    if variables.montecarlo:
+        players = [AdvancedPlayer(), MonteCarloPlayer(), MinPlayer(), RandomPlayer()]
+    else:
+        players = [AdvancedPlayer(), MinPlayer(), MinPlayer(), RandomPlayer()]
 
     # We are simulating n games accumulating a total score
     nr_of_matches = variables.nr_of_matches
