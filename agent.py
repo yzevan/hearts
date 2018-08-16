@@ -173,7 +173,11 @@ def do_play_card(ws, data):
     logging.debug("Candidate cards: {0}".format(candidateCards))
     logging.debug("Trick: {0}".format(GAME_STATUS["trick"]))
     remaining_players = GAME_STATUS["roundPlayers"][((GAME_STATUS["roundPlayers"].index(GAME_STATUS["turnPlayer"]) + 1) % 4):]
-    decision = PLAYER.play_card(candidateCards, GAME_STATUS["trick"], GAME_STATUS["out_of_suits"], remaining_players, GAME_STATUS["are_hearts_broken"], GAME_STATUS["is_spade_queen_played"])
+    cards_count = {}
+    for key, value in GAME_STATUS["players"].items():
+        if key != MY_NAME:
+            cards_count["playerName"] = value["cardsCount"]
+    decision = PLAYER.play_card(candidateCards, GAME_STATUS["trick"], GAME_STATUS["out_of_suits"], remaining_players, GAME_STATUS["are_hearts_broken"], GAME_STATUS["is_spade_queen_played"], GAME_STATUS["cards_played"], cards_count, GAME_STATUS["players"][MY_NAME]["cards"])
     result = str(decision)
     ws.send(json.dumps({
         "eventName": event_name,
