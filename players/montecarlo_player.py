@@ -3,9 +3,9 @@ from players.player import Player
 from card import Suit, Rank, Card, Deck
 from rules import is_card_valid
 import datetime
-from random import choice, randint
+from random import sample, choice, shuffle
 from math import log, sqrt
-import copy
+from copy import deepcopy
 import variables
 import logging
 
@@ -29,25 +29,29 @@ class MonteCarloPlayer(Player):
     def setGame(self, game):
         self.game = game
         
-    def play_card(self, valid_cards, trick, out_of_suits, remaining_players, are_hearts_broken, is_spade_queen_played):
+    def play_card(self, valid_cards, trick, out_of_suits, remaining_players, are_hearts_broken, is_spade_queen_played, cards_played, cards_count, hand):
+        all_cards = [Card(suit, rank) for suit in Suit for rank in Rank]
+        cards = [card for card in all_cards if card not in cards_played and card not in hand]
         self.max_depth = 0
-        player = self.game.players[self.game.current_player_index]
-        legal = self.game.current_trick_valid_cards
+        player = self.game.current_player_index
 
-        if len(legal) == 1:
-            return legal[0]
+        if len(valid_cards) == 1:
+            return valid_cards[0]
+
+        self.say('Trick: {}', trick)
+        self.say('Valid cards: {}', valid_cards)
 
         games = 0
         begin = datetime.datetime.utcnow()
         while datetime.datetime.utcnow() - begin < self.calculation_time:
-            self.run_simulation()
+            self.run_simulation(cards, cards_count)
             games += 1
         self.say('Game count: {}', games)
         self.say('Time: {}', datetime.datetime.utcnow() - begin)
         
         moves_states = []
         cards_played = self.game.cards_played
-        for p in legal:
+        for p in valid_cards:
             legal_state = cards_played + (p,)
             moves_states.append((p, legal_state))
 
@@ -57,6 +61,7 @@ class MonteCarloPlayer(Player):
              p)
             for p, S in moves_states
         )
+        self.say('played card: {}', move)
 
         # Display the stats for each possible play.
         for x in sorted(
@@ -72,15 +77,15 @@ class MonteCarloPlayer(Player):
         self.say('Maximum depth searched: {}', self.max_depth)
         return move
 
-    def run_simulation(self):
+    def run_simulation(self, cards, cards_count):
         plays, wins = self.plays, self.wins
-        current_game = copy.deepcopy(self.game)
-        # self.redistribute(current_game)
+        current_game = deepcopy(self.game)
+        self.redistribute(cards, cards_count, current_game)
         visited_states = set()
 
         expand = True
         for t in range(self.max_moves):
-            player = current_game.players[current_game.current_player_index]
+            player = current_game.current_player_index
             legal = current_game.current_trick_valid_cards
 
             moves_states = []
@@ -125,20 +130,10 @@ class MonteCarloPlayer(Player):
             if player in winners:
                 wins[(player, state)] += 1
 
-    def redistribute(self, game):
-        cards = []
-        numOfCards = {}
-        for i, player in enumerate(game.players):
-            if i != self.index:
-                cards += game.player_hands[i]
-                numOfCards[player.index] = len(game.player_hands[i])
-        #distribute randomly
-        for i, player in enumerate(game.players):
-            if i != self.index:
-                t = list(game.player_hands)
-                t[i] = []
-                game.player_hands = tuple(t)
-                for _ in range(numOfCards[player.index]):
-                    cardAdd = cards[randint(0, len(cards) - 1)]
-                    cards.remove(cardAdd)
-                    game.player_hands[i].append(cardAdd)
+    def redistribute(self, cards, cards_count, game):
+        shuffle(cards)
+        start = 0
+        for key, value in cards_count.items():
+            t = start
+            start += value
+            game.player_hands[key] = sorted(cards[t: start])

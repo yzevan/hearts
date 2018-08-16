@@ -114,7 +114,11 @@ class Game:
             player.setGame(self)
             player.setIndex(self.current_player_index)
         remaining_players = self.round_players[((self.round_players.index(self.current_player_index) + 1) % 4):]
-        played_card = player.play_card(self.current_trick_valid_cards, self.current_trick, self.out_of_suits, remaining_players, self.are_hearts_broken, self.is_spade_queen_played)
+        cards_count = {}
+        for i in range(4):
+            if i != self.current_player_index:
+                cards_count[i] = len(self.player_hands[i])
+        played_card = player.play_card(self.current_trick_valid_cards, self.current_trick, self.out_of_suits, remaining_players, self.are_hearts_broken, self.is_spade_queen_played, self.cards_played, cards_count, self.player_hands[self.current_player_index])
         self.update_status(played_card)
 
     def update_status(self, played_card):
@@ -154,14 +158,12 @@ class Game:
         trick is a list of four Cards, i.e. an entire trick.
         """
         leading_suit = trick[0].suit
-
         result = 0
         result_rank = Rank.two
         for i, card in enumerate(trick):
             if card.suit == leading_suit and card.rank > result_rank:
                 result = i
                 result_rank = card.rank
-
         return result
 
     def winners(self):
@@ -172,5 +174,5 @@ class Game:
         min_point = min(results)
         for i in range(4):
             if results[i] == min_point:
-                winners.append(self.players[i])
+                winners.append(i)
         return winners
