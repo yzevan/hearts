@@ -51,7 +51,7 @@ class Game:
         self.current_player_index = current_player_index
         self.leading_index = leading_index
         self.cards_taken = cards_taken
-        self.round_players
+        self.round_players = round_players
         self.trick_nr = trick_nr
 
     def play(self):
@@ -122,7 +122,7 @@ class Game:
 
     def step(self):
         player = self.players[self.current_player_index]
-        if type(player) == MonteCarloPlayer:
+        if variables.montecarlo:
             player = MonteCarloPlayer()
             player.setGame(self)
             player.setIndex(self.current_player_index)
@@ -140,21 +140,22 @@ class Game:
             self.is_spade_queen_played = True
         self.current_player_index = (self.current_player_index + 1) % 4
         if len(self.current_trick) == 4:
-            leading_suit = self.current_trick[0].suit
-            for i in range(1, 4):
-                if not self.out_of_suits[self.round_players[i]][leading_suit] and self.current_trick[i].suit != leading_suit:
-                    self.out_of_suits[self.round_players[i]][leading_suit] = True
+            if not variables.montecarlo:
+                leading_suit = self.current_trick[0].suit
+                for i in range(1, 4):
+                    if not self.out_of_suits[self.round_players[i]][leading_suit] and self.current_trick[i].suit != leading_suit:
+                        self.out_of_suits[self.round_players[i]][leading_suit] = True
             winning_index = self.winning_index(self.current_trick)
-            self.leading_index = self.round_players[winning_index]
+            self.leading_index = self.round_players[winning_index] 
             self.current_player_index = self.leading_index
             # self.say('Player {} won the trick {}.', self.leading_index, self.current_trick)
-            self.cards_taken[self.leading_index].extend(self.current_trick)
+            self.cards_taken[self.leading_index].extend(self.current_trick)   
             # self.say('Cards played: {}', self.cards_played)
-            self.round_players = [(self.leading_index + i) % 4 for i in range(4)]
+            self.round_players = [(self.leading_index + i) % 4 for i in range(4)]  
             self.current_trick = []
             self.trick_nr += 1
         self.current_trick_valid_cards = all_valid_cards(self.player_hands[self.current_player_index], self.current_trick, self.trick_nr, self.are_hearts_broken)
-            
+
     def player_index_with_two_of_clubs(self):
         two_of_clubs = Card(Suit.clubs, Rank.two)
         for i in range(4):

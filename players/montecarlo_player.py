@@ -1,7 +1,7 @@
 from __future__ import division
 from players.player import Player
 from card import Suit, Rank, Card, Deck
-from rules import is_card_valid
+from rules import all_valid_cards
 import datetime
 from random import sample, choice, shuffle
 from math import log, sqrt
@@ -51,10 +51,10 @@ class MonteCarloPlayer(Player):
         games = 0
         begin = datetime.datetime.utcnow()
         while datetime.datetime.utcnow() - begin < self.calculation_time:
-            self.run_simulation(cards, self.cards_count)
+            self.run_simulation(cards, self.cards_count, valid_cards)
             games += 1
         self.say('Game count: {}', games)
-        self.say('Time: {}', datetime.datetime.utcnow() - begin)
+        self.say('Simulation Time: {}', datetime.datetime.utcnow() - begin)
         
         moves_states = []
         cards_played = self.game.cards_played
@@ -84,11 +84,12 @@ class MonteCarloPlayer(Player):
         self.say('Maximum depth searched: {}', self.max_depth)
         return move
 
-    def run_simulation(self, cards, cards_count):
+    def run_simulation(self, cards, cards_count, valid_cards):
         plays, wins = self.plays, self.wins
         current_game = deepcopy(self.game)
         self.redistribute(cards, cards_count, current_game)
         visited_states = set()
+        current_game.current_trick_valid_cards = valid_cards
 
         expand = True
         for t in range(self.max_moves):
