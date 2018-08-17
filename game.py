@@ -7,23 +7,14 @@ import logging
 
 class Game:
 
-    def __init__(self, players, game_nr):
+    def __init__(self, players = None, game_nr = 0):
         """
         players is a list of four players
         """
         self.verbose = variables.verbose_game
         self.players = players
         self.game_nr = game_nr
-
-        self.new_game()
-
-    def say(self, message, *formatargs):
-        if self.verbose:
-            logging.debug(message.format(*formatargs))
-
-    def new_game(self):
-        deck = Deck()
-        self.player_hands = list(deck.deal())
+        self.player_hands = [[], [], [], []]
         self.cards_taken = ([], [], [], [])
         self.current_player_index = 0
         self.current_trick_valid_cards = []
@@ -38,8 +29,30 @@ class Game:
         self.out_of_suits = {}
         for i in range(4):
             self.out_of_suits[i] = {Suit.clubs: False, Suit.diamonds: False, Suit.spades: False, Suit.hearts: False}
+        if players:
+            self.new_game()
+
+    def say(self, message, *formatargs):
+        if self.verbose:
+            logging.debug(message.format(*formatargs))
+
+    def new_game(self):
+        deck = Deck()
+        self.player_hands = list(deck.deal())
         for i, player in enumerate(self.players):
             player.setIndex(i)
+
+    def set_attributes(self, current_trick, player_hands, cards_played, are_hearts_broken, is_spade_queen_played, current_player_index, leading_index, cards_taken, round_players, trick_nr):
+        self.current_trick = current_trick
+        self.player_hands = player_hands
+        self.cards_played = cards_played
+        self.are_hearts_broken = are_hearts_broken
+        self.is_spade_queen_played = is_spade_queen_played
+        self.current_player_index = current_player_index
+        self.leading_index = leading_index
+        self.cards_taken = cards_taken
+        self.round_players
+        self.trick_nr = trick_nr
 
     def play(self):
         """
@@ -114,11 +127,7 @@ class Game:
             player.setGame(self)
             player.setIndex(self.current_player_index)
         remaining_players = self.round_players[((self.round_players.index(self.current_player_index) + 1) % 4):]
-        cards_count = {}
-        for i in range(4):
-            if i != self.current_player_index:
-                cards_count[i] = len(self.player_hands[i])
-        played_card = player.play_card(self.current_trick_valid_cards, self.current_trick, self.out_of_suits, remaining_players, self.are_hearts_broken, self.is_spade_queen_played, self.cards_played, cards_count, self.player_hands[self.current_player_index])
+        played_card = player.play_card(self.current_trick_valid_cards, self.current_trick, self.out_of_suits, remaining_players, self.are_hearts_broken, self.is_spade_queen_played)
         self.update_status(played_card)
 
     def update_status(self, played_card):

@@ -14,13 +14,15 @@ class MonteCarloPlayer(Player):
 
     def __init__(self, **kwargs):
         self.verbose = variables.verbose_montecarlo
-        seconds = kwargs.get('time', variables.montecarlo_time)
-        self.calculation_time = datetime.timedelta(seconds=seconds)
+        microseconds = kwargs.get('time', variables.montecarlo_time)
+        self.calculation_time = datetime.timedelta(microseconds=microseconds)
         self.max_moves = kwargs.get('max_moves', 100)
         self.wins = {}
         self.plays = {}
         self.C = kwargs.get('C', 1.4)
         self.max_depth = 0
+        self.cards_count = {}
+        self.hand = []
 
     def say(self, message, *formatargs):
         if self.verbose:
@@ -28,10 +30,15 @@ class MonteCarloPlayer(Player):
 
     def setGame(self, game):
         self.game = game
-        
-    def play_card(self, valid_cards, trick, out_of_suits, remaining_players, are_hearts_broken, is_spade_queen_played, cards_played, cards_count, hand):
+
+    def setAttributes(self, game, cards_count, hand):
+        self.setGame(game)
+        self.cards_count = cards_count
+        self.hand = hand
+
+    def play_card(self, valid_cards, trick, out_of_suits, remaining_players, are_hearts_broken, is_spade_queen_played):
         all_cards = [Card(suit, rank) for suit in Suit for rank in Rank]
-        cards = [card for card in all_cards if card not in cards_played and card not in hand]
+        cards = [card for card in all_cards if card not in self.game.cards_played and card not in self.hand]
         self.max_depth = 0
         player = self.game.current_player_index
 
@@ -44,7 +51,7 @@ class MonteCarloPlayer(Player):
         games = 0
         begin = datetime.datetime.utcnow()
         while datetime.datetime.utcnow() - begin < self.calculation_time:
-            self.run_simulation(cards, cards_count)
+            self.run_simulation(cards, self.cards_count)
             games += 1
         self.say('Game count: {}', games)
         self.say('Time: {}', datetime.datetime.utcnow() - begin)

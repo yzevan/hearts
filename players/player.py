@@ -46,7 +46,7 @@ class Player:
             hand_copy.remove(card_to_pass)
         return cards_to_pass
 
-    def play_card(self, valid_cards, trick, out_of_suits, remaining_players, are_hearts_broken, is_spade_queen_played, cards_played, cards_count, hand):
+    def play_card(self, valid_cards, trick, out_of_suits, remaining_players, are_hearts_broken, is_spade_queen_played):
         """
         Must return a card from the given hand.
         trick is a list of cards played so far.

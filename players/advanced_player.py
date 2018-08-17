@@ -23,7 +23,7 @@ class AdvancedPlayer(Player):
     def undesirability(self, card):
         return card.rank.value
                     
-    def play_card(self, valid_cards, trick, out_of_suits, remaining_players, are_hearts_broken, is_spade_queen_played, cards_played, cards_count, hand):
+    def play_card(self, valid_cards, trick, out_of_suits, remaining_players, are_hearts_broken, is_spade_queen_played):
         self.say('Trick: {}', trick)
         self.say('Valid cards: {}', valid_cards)
         if trick:
