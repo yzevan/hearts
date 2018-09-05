@@ -6,6 +6,7 @@ from utils import init_logger
 import logging
 from agent import takeAction
 import sys
+import traceback
 
 ws = ""
 
@@ -27,6 +28,7 @@ def doListen(player_name, player_number, token, connect_url):
             msg = json.loads(result)
             takeAction(ws, msg)
     except Exception as e:
+        logging.error(traceback.format_exc())
         logging.error(e)
         doListen(player_name, player_number, token, connect_url)
 
