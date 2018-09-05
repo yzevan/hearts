@@ -4,7 +4,7 @@ from websocket import create_connection
 import variables
 from utils import init_logger
 import logging
-from agent import takeAction
+import agent
 import sys
 import traceback
 
@@ -23,11 +23,13 @@ def doListen(player_name, player_number, token, connect_url):
                 
             }
         }))
+
+        agent.MY_NAME = player_name
         while True:
             try:
                 result = ws.recv()
                 msg = json.loads(result)
-                takeAction(ws, msg, player_name)
+                agent.takeAction(ws, msg)
             except Exception as e:
                 logging.error(traceback.format_exc())
                 logging.error(e)

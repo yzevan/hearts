@@ -51,8 +51,8 @@ MY_NAME = ''
 PLAYER = AdvancedPlayer()
 NAME_TO_NUMBER = {}
 
-def takeAction(ws, msg, player_name):
-    MY_NAME = player_name
+    
+def takeAction(ws, msg):
     event_name = msg["eventName"]
     data = msg["data"]
     logging.debug("--- {0} ---".format(event_name))
