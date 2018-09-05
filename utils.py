@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+import variables
 
 debug_maping = {
     'error':logging.ERROR,
@@ -15,7 +16,10 @@ def init_logger():
     formatter = logging.Formatter(formatter_str, '%Y-%m-%d %H:%M:%S')
     
     logger.setLevel(debug_maping.get("debug"))
-    handler = logging.FileHandler(os.path.join(sys.path[0],'debug.log'))
+    if not os.path.exists(variables.log_folder):
+        os.mkdir(variables.log_folder)
+    log_filename = os.path.join(variables.log_folder, "debug.log")
+    handler = logging.FileHandler(log_filename)
     handler.setFormatter(formatter)
 
     for item in logger.handlers:

@@ -28,7 +28,7 @@ def doListen(player_name, player_number, token, connect_url):
             takeAction(ws, msg)
     except Exception as e:
         logging.error(e)
-        doListen()
+        doListen(player_name, player_number, token, connect_url)
 
 
 if __name__ == '__main__':
