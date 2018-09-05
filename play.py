@@ -27,8 +27,9 @@ def doListen(player_name, player_number, token, connect_url):
             try:
                 result = ws.recv()
                 msg = json.loads(result)
-                takeAction(ws, msg)
+                takeAction(ws, msg, player_name)
             except Exception as e:
+                logging.error(traceback.format_exc())
                 logging.error(e)
     except Exception as e:
         logging.error(traceback.format_exc())
