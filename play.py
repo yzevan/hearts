@@ -5,9 +5,9 @@ import variables
 from utils import init_logger
 import logging
 from agent import takeAction
+import sys
 
 ws = ""
-player_name = variables.player_name
 
 def doListen(player_name, player_number, token, connect_url):
     try:
