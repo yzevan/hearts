@@ -24,9 +24,12 @@ def doListen(player_name, player_number, token, connect_url):
             }
         }))
         while True:
-            result = ws.recv()
-            msg = json.loads(result)
-            takeAction(ws, msg)
+            try:
+                result = ws.recv()
+                msg = json.loads(result)
+                takeAction(ws, msg)
+            except Exception as e:
+                logging.error(e)
     except Exception as e:
         logging.error(traceback.format_exc())
         logging.error(e)
