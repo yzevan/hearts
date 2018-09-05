@@ -14,7 +14,9 @@ def play():
     if variables.montecarlo:
         players = [AdvancedPlayer(), MonteCarloPlayer(), MinPlayer(), RandomPlayer()]
     else:
-        players = [AdvancedPlayer(), MinPlayer(), MinPlayer(), RandomPlayer()]
+        #players = [AdvancedPlayer(), MinPlayer(), MinPlayer(), RandomPlayer()]
+        #players = [AdvancedPlayer(), AdvancedPlayer(), AdvancedPlayer(), AdvancedPlayer()]
+        players = [AdvancedPlayer(), MinPlayer(), MinPlayer(), MinPlayer()]
 
     # We are simulating n games accumulating a total score
     nr_of_matches = variables.nr_of_matches

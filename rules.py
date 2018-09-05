@@ -119,3 +119,15 @@ def str_to_card(s):
         "A": Rank.ace
     }
     return Card(str_to_suit[s[1]], str_to_rank[s[0]])
+
+def get_unplayed_cards_with_suit(played_cards, my_hand, suit):
+    """
+    Get unplayed cards of a suit
+    """
+    unplayed_cards = []
+    for rank in Rank:
+        card = Card(suit, rank)
+        if card not in played_cards and card not in my_hand:
+            unplayed_cards.append(card)
+        
+    return unplayed_cards

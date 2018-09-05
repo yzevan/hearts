@@ -201,7 +201,10 @@ def do_play_card(ws, data):
         PLAYER.setAttributes(game, cards_count, my_hand)
     else:
         PLAYER = AdvancedPlayer()
-    decision = PLAYER.play_card(candidateCards, GAME_STATUS["trick"], GAME_STATUS["out_of_suits"], remaining_players, GAME_STATUS["are_hearts_broken"], GAME_STATUS["is_spade_queen_played"])
+        my_hand = [str_to_card(card) for card in GAME_STATUS["players"][MY_NAME]["cards"]]
+        cards_played = GAME_STATUS["cards_played"]
+        #PLAYER.setAttributes(my_hand, cards_played)
+    decision = PLAYER.play_card(candidateCards, GAME_STATUS["trick"], GAME_STATUS["out_of_suits"], remaining_players, GAME_STATUS["are_hearts_broken"], GAME_STATUS["is_spade_queen_played"], my_hand, cards_played)
     result = str(decision)
     ws.send(json.dumps({
         "eventName": event_name,

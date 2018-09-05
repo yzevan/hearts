@@ -127,10 +127,11 @@ class Game:
             player.setGame(self)
             player.setIndex(self.current_player_index)
         remaining_players = self.round_players[((self.round_players.index(self.current_player_index) + 1) % 4):]
-        played_card = player.play_card(self.current_trick_valid_cards, self.current_trick, self.out_of_suits, remaining_players, self.are_hearts_broken, self.is_spade_queen_played)
+        played_card = player.play_card(self.current_trick_valid_cards, self.current_trick, self.out_of_suits, remaining_players, self.are_hearts_broken, self.is_spade_queen_played, self.player_hands[self.current_player_index], self.cards_played)
         self.update_status(played_card)
 
     def update_status(self, played_card):
+        #logging.debug("hand: {}, played_card: {} ---".format(self.player_hands[self.current_player_index], played_card))
         self.current_trick.append(played_card)
         self.player_hands[self.current_player_index].remove(played_card)
         self.cards_played += (played_card,)

@@ -16,7 +16,10 @@ def doListen():
         ws.send(json.dumps({
             "eventName": "join",
             "data": {
-                "playerName": player_name
+                "playerNumber":11,
+                "playerName": player_name,
+                "token":"1234567"                
+                
             }
         }))
         while True:

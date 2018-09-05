@@ -36,7 +36,7 @@ class MonteCarloPlayer(Player):
         self.cards_count = cards_count
         self.hand = hand
 
-    def play_card(self, valid_cards, trick, out_of_suits, remaining_players, are_hearts_broken, is_spade_queen_played):
+    def play_card(self, valid_cards, trick, out_of_suits, remaining_players, are_hearts_broken, is_spade_queen_played, my_hand, cards_played):
         all_cards = [Card(suit, rank) for suit in Suit for rank in Rank]
         cards = [card for card in all_cards if card not in self.game.cards_played and card not in self.hand]
         self.max_depth = 0
