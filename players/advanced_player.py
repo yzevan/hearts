@@ -163,9 +163,9 @@ class AdvancedPlayer(Player):
 
     def best_available(self, suit, cards, trick, out_of_suits, remaining_players):
         #Play Q of spades and 10 of clubs if possbile        
-        if suit == Suit.spades and Card(Suit.spades, Rank.queen) in cards and any( card.rank > Rank.queen for card in trick ):
+        if suit == Suit.spades and Card(Suit.spades, Rank.queen) in cards and any( card.suit == suit and card.rank > Rank.queen for card in trick ):
             return Card(Suit.spades, Rank.queen)        
-        if suit == Suit.clubs and Card(Suit.clubs, Rank.ten) in cards and any( card.rank > Rank.ten for card in trick):
+        if suit == Suit.clubs and Card(Suit.clubs, Rank.ten) in cards and any( card.suit == suit and card.rank > Rank.ten for card in trick):
             return Card(Suit.clubs, Rank.ten)
            
         if is_last_turn(trick) and not contains_unwanted_cards(trick):  #doesn't contain point cards, play max non-point card

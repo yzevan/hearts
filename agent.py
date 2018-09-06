@@ -172,8 +172,23 @@ def set_turn_end(data):
     if not GAME_STATUS["is_spade_queen_played"] and turnCard == Card(Suit.spades, Rank.queen):
         GAME_STATUS["is_spade_queen_played"] = True
     leading_suit = GAME_STATUS["trick"][0].suit
+    #If the player didn't play the leading suit, set out_of_suits to True for this player
     if not GAME_STATUS["out_of_suits"][GAME_STATUS["turnPlayer"]][leading_suit] and str_to_card(GAME_STATUS["turnCard"]).suit != leading_suit:
         GAME_STATUS["out_of_suits"][GAME_STATUS["turnPlayer"]][leading_suit] = True
+        
+    #check if palyers are out of suit after the turn card is palyed
+    found = False    
+    my_hand = [str_to_card(card) for card in GAME_STATUS["players"][MY_NAME]["cards"]]
+    for rank in Rank:
+        card = Card(turnCard.suit, rank)
+        if card not in GAME_STATUS["cards_played"] and card not in my_hand:
+            found = True
+            break
+    if not found:  #if there's no card which is played or in my hand, that means all other players are out of the suit
+        logging.debug("NOTE: All players are out of the suit. Turn Card:{0}".format(turnCard))
+        for player_name in GAME_STATUS["out_of_suits"].keys():
+            if player_name != MY_NAME:
+                GAME_STATUS["out_of_suits"][player_name][turnCard.suit] = True
 
 def do_play_card(ws, data):
     begin = datetime.datetime.utcnow()
