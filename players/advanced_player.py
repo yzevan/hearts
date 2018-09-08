@@ -33,11 +33,9 @@ class AdvancedPlayer(Player):
     def calc_risk(self, suit, card, others_unplayed_cards_of_suit, out_of_suits, remaining_players):
         """
         """
-        num_of_smaller_than_mine = 0
-        for c in others_unplayed_cards_of_suit:
-            if c < card:
-                num_of_smaller_than_mine = num_of_smaller_than_mine + 1        
-        
+      
+        num_of_smaller_than_mine = len([ other for other in others_unplayed_cards_of_suit if other.rank < card.rank])
+        num_of_larger_than_mine = len([ other for other in others_unplayed_cards_of_suit if other.rank > card.rank])        
         out_of_suit_player_num = 0
         for player in remaining_players:
             if out_of_suits[player][suit]:
@@ -45,7 +43,9 @@ class AdvancedPlayer(Player):
         others_unplayed_num = len(others_unplayed_cards_of_suit)
         weight = 0.01
         self.say("num_of_smaller_than_mine:{}, out_of_suit_player_num:{}, others_unplayed_num:{}", num_of_smaller_than_mine, out_of_suit_player_num, others_unplayed_num)
-        if out_of_suit_player_num == 3:
+        if out_of_suit_player_num == 3: #avoid playing card that's off suit for others
+            risk = 100
+        elif num_of_larger_than_mine == 0:  #avoid playing card that's largest in a suit
             risk = 100
         else:
             risk = num_of_smaller_than_mine/(3-out_of_suit_player_num) + weight * others_unplayed_num/(3-out_of_suit_player_num)
@@ -149,7 +149,7 @@ class AdvancedPlayer(Player):
         return decision
     
     def calc_risk_for_off_suit(self, card, num_of_mine, num_of_smaller_than_mine , num_of_larger_than_mine, suit_risk):
-        if suit_risk == -1:
+        if suit_risk == -1: #others are off suit, avoid playing it
             risk = 0
         else:
             card_risk = num_of_smaller_than_mine/(num_of_smaller_than_mine+num_of_larger_than_mine)
