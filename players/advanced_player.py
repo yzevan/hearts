@@ -47,40 +47,42 @@ class AdvancedPlayer(Player):
             hand_copy.remove(card)
         self.say('check_shoot: prepare to select 3 cards:{}', pass_cards)
         
-        my_suits = {}
-        for card in hand_copy:
-            if card.suit not in my_suits:
-                my_suits[card.suit] = 0
+        self.check_shoot_the_moon(hand_copy, cards_played, [], 
+                                 {})
+        #my_suits = {}
+        #for card in hand_copy:
+            #if card.suit not in my_suits:
+                #my_suits[card.suit] = 0
                 
         
-        for suit in my_suits.keys():
-            suit_cards = cards_with_suit(suit, hand_copy)
-            suit_cards.sort()
-            others_unplayed_cards_of_suit = get_unplayed_cards_with_suit(
-                [], hand_copy, 
-                suit)
-            suit_strenth = self.calc_suit_strength(suit, suit_cards, 
-                                              others_unplayed_cards_of_suit, {} )
-            self.say('suit {}, suit strength: {}', suit, suit_strenth)
-            if not others_unplayed_cards_of_suit:
-                my_suits[suit] = 1
-                self.say('check_shoot: {} is offsuit', suit)
-            elif all(other.rank < my_card.rank for other in others_unplayed_cards_of_suit for my_card in suit_cards):
-                my_suits[suit] = 1
-                self.say('check_shoot: {} cards are the largest', suit)
-            #elif all(other.rank < suit_cards[-1].rank for other in others_unplayed_cards_of_suit):
-            elif suit_strenth > 0.5:
-                my_suits[suit] = 1
-                self.say('check_shoot: {} has a max card and high suit strength are the largest', suit)
-            elif all(other.rank < suit_cards[-1].rank for other in others_unplayed_cards_of_suit) \
-                 and len(suit_cards) > 5: 
-                my_suits[suit] = 1
-                self.say('check_shoot: {} has a max card and high suit card number', suit)
+        #for suit in my_suits.keys():
+            #suit_cards = cards_with_suit(suit, hand_copy)
+            #suit_cards.sort()
+            #others_unplayed_cards_of_suit = get_unplayed_cards_with_suit(
+                #[], hand_copy, 
+                #suit)
+            #suit_strenth = self.calc_suit_strength(suit, suit_cards, 
+                                              #others_unplayed_cards_of_suit, {} )
+            #self.say('suit {}, suit strength: {}', suit, suit_strenth)
+            #if not others_unplayed_cards_of_suit:
+                #my_suits[suit] = 1
+                #self.say('check_shoot: {} is offsuit', suit)
+            #elif all(other.rank < my_card.rank for other in others_unplayed_cards_of_suit for my_card in suit_cards):
+                #my_suits[suit] = 1
+                #self.say('check_shoot: {} cards are the largest', suit)
+            ##elif all(other.rank < suit_cards[-1].rank for other in others_unplayed_cards_of_suit):
+            #elif suit_strenth > 0.5:
+                #my_suits[suit] = 1
+                #self.say('check_shoot: {} has a max card and high suit strength are the largest', suit)
+            #elif all(other.rank < suit_cards[-1].rank for other in others_unplayed_cards_of_suit) \
+                 #and len(suit_cards) > 5: 
+                #my_suits[suit] = 1
+                #self.say('check_shoot: {} has a max card and high suit card number', suit)
                      
         #if all suits are strong enough
-        if sum(my_suits[suit] for suit in my_suits) > 2:
-            self.try_to_shoot = 1
-            self.say('NOTE: Switch to shoot the moon. My hand:{}', my_hand)                        
+        #if sum(my_suits[suit] for suit in my_suits) > 2:
+            #self.try_to_shoot = 1
+            #self.say('NOTE: Switch to shoot the moon. My hand:{}', my_hand)                        
 
         if self.try_to_shoot == 1:           
             self.say('Try to shoot the moon: pass small cards.')
@@ -366,15 +368,19 @@ class AdvancedPlayer(Player):
                 if not others_unplayed_cards_of_suit:
                     my_suits[suit] = 1
                     self.say('check_shoot: {} is offsuit', suit)                 
-                elif all(other.rank < suit_cards[-1].rank for other in others_unplayed_cards_of_suit):
-                    if suit == Suit.hearts:
-                        if suit_strenth > 0.5 and suit_cards > 4:
-                            my_suits[suit] = 1
-                            self.say('check_shoot: {} suit_strength> threshold', suit)                              
-                    else:
-                        if suit_strenth > 0.5:
-                            my_suits[suit] = 1
-                            self.say('check_shoot: {} suit_strength> threshold', suit)                       
+
+                if suit == Suit.hearts:
+                    if all(other.rank < suit_cards[-1].rank for other in others_unplayed_cards_of_suit) and suit_strenth > 0.6 and len(suit_cards) >= 4:
+                        my_suits[suit] = 1
+                        self.say('check_shoot: {} suit_strength> threshold', suit)    
+                elif suit == Suit.spades:
+                    if suit_strenth > 0.7:
+                        my_suits[suit] = 1
+                        self.say('check_shoot: {} suit_strength> threshold', suit)                           
+                else:
+                    if suit_strenth > 0.5:
+                        my_suits[suit] = 1
+                        self.say('check_shoot: {} suit_strength> threshold', suit)                       
                     
                     #if len(others_unplayed_cards_of_suit) == 1:
                         #my_suits[suit] = 1

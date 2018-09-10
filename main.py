@@ -31,7 +31,8 @@ def play():
         for game_nr in range(1, 5):
             logging.debug("--- GAME {} ---".format(game_nr))
             my_player = AdvancedPlayer(0)
-            players = [my_player, MinPlayer(), MinPlayer(), MinPlayer()]
+            #players = [my_player, MinPlayer(), MinPlayer(), MinPlayer()]
+            players = [my_player, AdvancedPlayer(1), AdvancedPlayer(2), AdvancedPlayer(3)]
             game = Game(players, game_nr % 4)
             scores = tuple(sum(x) for x in zip(scores, game.play()))
             shoot_the_moon_list = tuple(sum(x) for x in zip(shoot_the_moon_list, game.shoot_the_moon_list))

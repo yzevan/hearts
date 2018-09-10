@@ -1,4 +1,4 @@
-nr_of_matches = 100
+nr_of_matches = 10
 verbose_montecarlo = True
 verbose_advanced = True
 verbose_game = True
