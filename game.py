@@ -27,6 +27,8 @@ class Game:
         self.is_spade_queen_played = False
         self.round_players = []
         self.out_of_suits = {}
+        self.score_cards = {} #record all palyers' score cards. The key is player name
+        self.shoot_the_moon_list = [0, 0, 0, 0]
         for i in range(4):
             self.out_of_suits[i] = {Suit.clubs: False, Suit.diamonds: False, Suit.spades: False, Suit.hearts: False}
         if players:
@@ -72,7 +74,9 @@ class Game:
         for _ in range(13):
             self.play_trick()
 
-        results = count_points(self.cards_taken, self.exposed)
+        results, shoot_the_moon_list = count_points(self.cards_taken, self.exposed)
+        self.shoot_the_moon_list = shoot_the_moon_list
+        
         # Print and return the results
         self.say('Results of this game:')
         for i in range(4):
@@ -127,7 +131,7 @@ class Game:
             player.setGame(self)
             player.setIndex(self.current_player_index)
         remaining_players = self.round_players[((self.round_players.index(self.current_player_index) + 1) % 4):]
-        played_card = player.play_card(self.current_trick_valid_cards, self.current_trick, self.out_of_suits, remaining_players, self.are_hearts_broken, self.is_spade_queen_played, self.player_hands[self.current_player_index], self.cards_played)
+        played_card = player.play_card(self.current_trick_valid_cards, self.current_trick, self.out_of_suits, remaining_players, self.are_hearts_broken, self.is_spade_queen_played, self.player_hands[self.current_player_index], self.cards_played, self.score_cards)
         self.update_status(played_card)
 
     def update_status(self, played_card):
@@ -141,6 +145,7 @@ class Game:
             self.is_spade_queen_played = True
         self.current_player_index = (self.current_player_index + 1) % 4
         if len(self.current_trick) == 4:
+            self.say(">>>>>>>>>>>>>>>>>>>Trick cards of round {}", self.current_trick)
             if not variables.montecarlo:
                 leading_suit = self.current_trick[0].suit
                 for i in range(1, 4):
@@ -152,6 +157,13 @@ class Game:
             # self.say('Player {} won the trick {}.', self.leading_index, self.current_trick)
             self.cards_taken[self.leading_index].extend(self.current_trick)   
             # self.say('Cards played: {}', self.cards_played)
+            trick_score_cards = [ card for card in self.current_trick if card == Card(Suit.spades, Rank.queen) or card.suit == Suit.hearts ]
+            if trick_score_cards:
+                if self.leading_index not in self.score_cards:
+                    self.score_cards[self.leading_index] = trick_score_cards
+                else:
+                    self.score_cards[self.leading_index].extend(trick_score_cards)
+            
             self.round_players = [(self.leading_index + i) % 4 for i in range(4)]  
             self.current_trick = []
             self.trick_nr += 1
@@ -181,7 +193,7 @@ class Game:
         if len(self.cards_played) != 52:
             return None
         winners = []
-        results = count_points(self.cards_taken, self.exposed)
+        results, shoot_the_moon_list = count_points(self.cards_taken, self.exposed)
         min_point = min(results)
         for i in range(4):
             if results[i] == min_point:

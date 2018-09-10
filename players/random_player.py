@@ -14,5 +14,5 @@ class RandomPlayer(Player):
     def pass_cards(self, hand):
         return sample(hand, 3)
 
-    def play_card(self, valid_cards, trick, out_of_suits, remaining_players, are_hearts_broken, is_spade_queen_played,  my_hand, cards_played):
+    def play_card(self, valid_cards, trick, out_of_suits, remaining_players, are_hearts_broken, is_spade_queen_played,  my_hand, cards_played, score_cards):
         return choice(valid_cards)

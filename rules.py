@@ -3,6 +3,7 @@ This module contains a few functions comprising the rules of the game.
 """
 
 from card import Suit, Rank, Card
+import logging
 
 def is_card_valid(hand, trick, card, trick_nr, are_hearts_broken):
     """
@@ -47,6 +48,7 @@ def count_points(cards_taken, exposed):
     Count the number of points in cards, where cards is a list of Cards.
     """
     points = [0, 0, 0, 0]
+    shoot_the_moon_list = [0, 0, 0, 0]
     shooting_the_moon = False
     club_ten_holder = 0
     for i, cards in enumerate(cards_taken):
@@ -54,13 +56,17 @@ def count_points(cards_taken, exposed):
         if (Card(Suit.clubs, Rank.ten) in cards):
             points[i] = points[i] * 2
             club_ten_holder = i
-        if ((not shooting_the_moon) and all([(card.suit == Suit.hearts or card == Card(Suit.spades, Rank.queen)) for card in cards])):
+        if (not shooting_the_moon) and Card(Suit.spades, Rank.queen) in cards \
+            and all([ Card(Suit.hearts, rank) in cards for rank in Rank]):
             shooting_the_moon = True
             shooting_the_moon_player = i
     if shooting_the_moon:
         winning_point = points[shooting_the_moon_player] * 2
         points[i] = (0 if i == shooting_the_moon_player else (winning_point * 2 if i == club_ten_holder else winning_point))
-    return points
+        shoot_the_moon_list[shooting_the_moon_player] = 1        
+        logging.info('player {} shoot the moon successfully'.format(shooting_the_moon_player))
+       
+    return points, shoot_the_moon_list
 
 def are_hearts_broken(cards):
     """
@@ -86,6 +92,9 @@ def secondary_choice_needed(decision, cards):
 
 def contains_unwanted_cards(cards):
     return (len(cards_with_suit(Suit.hearts, cards)) > 0) or (Card(Suit.spades, Rank.queen) in cards) or (Card(Suit.clubs, Rank.ten) in cards)
+def contains_score_cards(cards):
+    return (len(cards_with_suit(Suit.hearts, cards)) > 0) or (Card(Suit.spades, Rank.queen) in cards)
+
 
 def get_largest_rank_with_smallest_length(cards, suits = "all"):
     if suits == "all":
@@ -95,6 +104,9 @@ def get_largest_rank_with_smallest_length(cards, suits = "all"):
     cards_for_suit_flatten = [card for cards in cards_for_suit for card in cards]
     cards_for_suit_flatten.sort(key=lambda card: card.rank.value)
     return cards_for_suit_flatten[-1]
+
+def get_smallest_rank_cards(cards, number):
+    return sorted(cards, key=lambda card: card.rank.value)[0:number]
 
 def str_to_card(s):
     str_to_suit = {

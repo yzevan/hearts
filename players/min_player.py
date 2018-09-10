@@ -11,5 +11,5 @@ class MinPlayer(Player):
     It will try to get rid of the most undesirable cards while trying not to win a trick.
     """
 
-    def play_card(self, valid_cards, trick, out_of_suits, remaining_players, are_hearts_broken, is_spade_queen_played,  my_hand, cards_played):
+    def play_card(self, valid_cards, trick, out_of_suits, remaining_players, are_hearts_broken, is_spade_queen_played,  my_hand, cards_played, score_cards):
         return valid_cards[0]

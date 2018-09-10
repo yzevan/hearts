@@ -7,6 +7,7 @@ import logging
 import agent
 import sys
 import traceback
+from players.advanced_player import AdvancedPlayer
 
 ws = ""
 
@@ -25,6 +26,7 @@ def doListen(player_name, player_number, token, connect_url):
         }))
 
         agent.MY_NAME = player_name
+        #agent.PLAYER = AdvancedPlayer(player_name)
         while True:
             try:
                 result = ws.recv()

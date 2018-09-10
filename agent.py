@@ -44,15 +44,16 @@ GAME_STATUS = {
     "is_spade_queen_played": False,
     "trick": [],
     "out_of_suits": {},
-    "cards_taken": ([], [], [], [])
+    "cards_taken": ([], [], [], []),
+    "score_cards": {}
 }
 
 MY_NAME = ''
-PLAYER = AdvancedPlayer()
+PLAYER = None
 NAME_TO_NUMBER = {}
 
     
-def takeAction(ws, msg):
+def takeAction(ws, msg): 
     event_name = msg["eventName"]
     data = msg["data"]
     logging.debug("--- {0} ---".format(event_name))
@@ -93,6 +94,9 @@ def set_new_game(data):
         GAME_STATUS["players"][playerName] = deepcopy(PLAYER_STATUS)
 
 def set_new_deal(data):
+    global PLAYER    
+    PLAYER = AdvancedPlayer(MY_NAME)
+        
     fields_game = ["dealNumber"]
     fields_all = ["playerNumber", "playerName", "gameScore", "dealScore", "cardsCount", "receivedFrom", "exposedCards", "shootingTheMoon", "roundCard"]
     fields_self = ["scoreCards", "cards", "pickedCards", "receivedCards", "candidateCards"]
@@ -107,6 +111,7 @@ def set_new_deal(data):
     GAME_STATUS["are_hearts_broken"] = False
     GAME_STATUS["is_spade_queen_played"] = False
     GAME_STATUS["cards_taken"] = ([], [], [], [])
+    GAME_STATUS["score_cards"] = {}
 
 def do_pass_cards(ws, data):
     fields_game = ["receiver"]
@@ -190,16 +195,20 @@ def set_turn_end(data):
             if player_name != MY_NAME:
                 GAME_STATUS["out_of_suits"][player_name][turnCard.suit] = True
 
+
 def do_play_card(ws, data):
+    global PLAYER
     begin = datetime.datetime.utcnow()
     fields_self = ["cards", "candidateCards"]
     set_data_for_game(data, fields_self = fields_self)
     candidateCards = [str_to_card(card) for card in data["self"]["candidateCards"]]
     candidateCards.sort()
     event_name = "pick_card"
-    logging.debug("--- {0} ---".format(event_name))
-    logging.debug("Candidate cards: {0}".format(candidateCards))
-    logging.debug("Trick: {0}".format(GAME_STATUS["trick"]))
+    logging.info("--- {0} ---".format(event_name))
+    logging.info("Candidate cards: {0}".format(candidateCards))
+    logging.info("Trick: {0}".format(GAME_STATUS["trick"]))
+    logging.info("Cards played: {0}".format(sorted(GAME_STATUS["cards_played"])))
+    logging.info("Score cards: {0}".format(GAME_STATUS["score_cards"]))
     remaining_players = GAME_STATUS["roundPlayers"][((GAME_STATUS["roundPlayers"].index(MY_NAME) + 1) % 4):]
     if variables.montecarlo:
         game = Game()
@@ -216,11 +225,11 @@ def do_play_card(ws, data):
         PLAYER = MonteCarloPlayer()
         PLAYER.setAttributes(game, cards_count, my_hand)
     else:
-        PLAYER = AdvancedPlayer()
+        #PLAYER = AdvancedPlayer(MY_NAME)
         my_hand = [str_to_card(card) for card in GAME_STATUS["players"][MY_NAME]["cards"]]
         cards_played = GAME_STATUS["cards_played"]
-        #PLAYER.setAttributes(my_hand, cards_played)
-    decision = PLAYER.play_card(candidateCards, GAME_STATUS["trick"], GAME_STATUS["out_of_suits"], remaining_players, GAME_STATUS["are_hearts_broken"], GAME_STATUS["is_spade_queen_played"], my_hand, cards_played)
+        #PLAYER.setAttributes(my_hand, cards_played)        
+    decision = PLAYER.play_card(candidateCards, GAME_STATUS["trick"], GAME_STATUS["out_of_suits"], remaining_players, GAME_STATUS["are_hearts_broken"], GAME_STATUS["is_spade_queen_played"], my_hand, cards_played, GAME_STATUS["score_cards"])
     result = str(decision)
     ws.send(json.dumps({
         "eventName": event_name,
@@ -230,18 +239,30 @@ def do_play_card(ws, data):
             "turnCard": result
         }
     }))
-    logging.debug("Pick: {0}".format(result))
-    logging.debug('Decision Time: {0}'.format(datetime.datetime.utcnow() - begin))
+    logging.info("Pick: {0}".format(result))
+    logging.info('Decision Time: {0}'.format(datetime.datetime.utcnow() - begin))
 
 def set_round_end(data):
     fields_game = ["roundPlayer"]
     fields_all = ["dealScore"]
     set_data_for_game(data, fields_game = fields_game, fields_all = fields_all)
     GAME_STATUS["cards_taken"][NAME_TO_NUMBER[GAME_STATUS["roundPlayer"]]].extend(GAME_STATUS["trick"])
-
+    logging.info('Trick:{0}'.format(GAME_STATUS["trick"]))
+    #update score_cards table
+    trick_score_cards = [ card for card in GAME_STATUS["trick"] if card == Card(Suit.spades, Rank.queen) or card.suit == Suit.hearts]
+    if trick_score_cards:
+        if GAME_STATUS["roundPlayer"] not in GAME_STATUS["score_cards"]:
+            GAME_STATUS["score_cards"][GAME_STATUS["roundPlayer"]] = trick_score_cards
+        else:
+            GAME_STATUS["score_cards"][GAME_STATUS["roundPlayer"]].extend(trick_score_cards)
+        if GAME_STATUS["roundPlayer"] == MY_NAME:
+            logging.info('I take the trick. Score cards:{}'.format(trick_score_cards))
+    
+            
 def set_deal_end(data):
     fields_all = ["gameScore", "scoreCards", "cards", "shootingTheMoon"]
     set_data_for_game(data, fields_all = fields_all)
+    logging.info('--- deal end ---')
 
 def set_game_end(data):
     fields_all = ["rank", "deals"]

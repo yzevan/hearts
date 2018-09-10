@@ -6,6 +6,7 @@ montecarlo_time = 900000
 montecarlo = False
 advanced_formula = True
 log_folder = "/log"
+enable_shoot_the_moon = True
 
 url = "ws://127.0.0.1:8080"
 player_name = "Born to Win"
