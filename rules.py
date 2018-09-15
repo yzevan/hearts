@@ -143,3 +143,44 @@ def get_unplayed_cards_with_suit(played_cards, my_hand, suit):
             unplayed_cards.append(card)
         
     return unplayed_cards
+
+def is_others_off_suit(suit, out_of_suits, my_name):
+    """
+    suit:
+    out_of_suits: a dict to store all players out of suit info,whose value is also a dict. e.g. out_of_suits['player']['suit'] = True/False
+    my_name:
+    """
+    return all([out_of_suits[player][suit] for player in out_of_suits if player != my_name ])
+
+def is_larger_than_others(my_card, my_hand, played_cards):
+    suit = my_card.suit
+    others_played_cards_of_suit = cards_with_suit(suit, played_cards)
+    others_unplayed_cards_of_suit = [ Card(suit, rank) for rank in Rank if Card(suit, rank) not in my_hand and Card(suit, rank) not in played_cards]
+    return all([ my_card > other for other in others_unplayed_cards_of_suit])
+
+def is_smaller_than_others(card, my_hand, played_cards):
+    suit = my_card.suit
+    others_played_cards_of_suit = cards_with_suit(suit, played_cards)
+    others_unplayed_cards_of_suit = [ Card(suit, rank) for rank in Rank if Card(suit, rank) not in my_hand and Card(suit, rank) not in played_cards]
+    return all([ my_card < other for other in others_unplayed_cards_of_suit])
+
+def get_min_rank_card(cards):
+    """
+    return min rank card of cards with different suits.
+    If mutliple suits have the same rank, only return last one
+    """
+    min_rank = Rank.ace
+    min_card = None
+    
+    for card in cards:
+        if card.rank <= min_rank:
+            min_rank = card.rank
+            min_card = card
+    return min_card
+            
+
+
+
+if __name__ == "__main__":
+    pass
+        

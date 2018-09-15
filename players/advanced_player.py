@@ -1,7 +1,9 @@
 from players.player import Player
 from random import shuffle
 from card import Suit, Rank, Card, Deck
-from rules import is_card_valid, is_last_turn, cards_with_suit, secondary_choice_needed, contains_unwanted_cards, get_largest_rank_with_smallest_length, get_unplayed_cards_with_suit, contains_score_cards, get_smallest_rank_cards
+#from rules import is_card_valid, is_last_turn, cards_with_suit, secondary_choice_needed, contains_unwanted_cards, get_largest_rank_with_smallest_length, get_unplayed_cards_with_suit, contains_score_cards, get_smallest_rank_cards, str_to_card
+from rules import *
+
 import variables
 import logging
 import sys
@@ -19,6 +21,7 @@ class AdvancedPlayer(Player):
         self.verbose = variables.verbose_advanced
         self.try_to_shoot = 0
         self.name = name
+        self.suit_strength= {}
         #self.my_hand = []
         #self.cards_played = ()
 
@@ -47,8 +50,7 @@ class AdvancedPlayer(Player):
             hand_copy.remove(card)
         self.say('check_shoot: prepare to select 3 cards:{}', pass_cards)
         
-        self.check_shoot_the_moon(hand_copy, cards_played, [], 
-                                 {})
+        self.check_shoot_the_moon(hand_copy, cards_played, [], {})
         #my_suits = {}
         #for card in hand_copy:
             #if card.suit not in my_suits:
@@ -87,7 +89,28 @@ class AdvancedPlayer(Player):
         if self.try_to_shoot == 1:           
             self.say('Try to shoot the moon: pass small cards.')
         else:
-            pass_cards = super(AdvancedPlayer, self).pass_cards(my_hand)
+            #pass_cards = super(AdvancedPlayer, self).pass_cards(my_hand)
+            
+            hand_copy = my_hand[:]
+            pass_cards = []
+            for _ in range(3):
+                spades_in_hand = cards_with_suit(Suit.spades, hand_copy)
+                clubs_in_hand = cards_with_suit(Suit.clubs, hand_copy)
+                if len(spades_in_hand) < 6 and Card(Suit.spades, Rank.queen) in spades_in_hand:
+                    card_to_pass = Card(Suit.spades, Rank.queen)
+                elif len(spades_in_hand) < 6 and Card(Suit.spades, Rank.ace) in spades_in_hand:
+                    card_to_pass = Card(Suit.spades, Rank.ace)
+                elif len(spades_in_hand) < 6 and Card(Suit.spades, Rank.king) in spades_in_hand:
+                    card_to_pass = Card(Suit.spades, Rank.king)
+                elif len(clubs_in_hand) < 6 and Card(Suit.clubs, Rank.ten) in clubs_in_hand:
+                    card_to_pass = Card(Suit.clubs, Rank.ten)
+                else:
+                    card_to_pass = self.get_strongest_card(hand_copy, 
+                        pass_cards, 
+                        {})
+                pass_cards.append(card_to_pass)
+                hand_copy.remove(card_to_pass)
+                
         self.say('passed cards:{}', pass_cards)
         return pass_cards
     
@@ -154,6 +177,13 @@ class AdvancedPlayer(Player):
             others_unplayed_cards_of_suit = get_unplayed_cards_with_suit(
                                 cards_played, my_hand, 
                                 suit)
+            #if I have QS/TC, and they are the smallest, play it first    
+            if (Card(Suit.spades, Rank.queen) in my_cards_of_suit) and all( [other.rank > Rank.queen for other in others_unplayed_cards_of_suit]):
+                return Card(Suit.spades, Rank.queen)
+            
+            if (Card(Suit.clubs, Rank.ten) in my_cards_of_suit) and all( [other.rank > Rank.ten for other in others_unplayed_cards_of_suit]):
+                return Card(Suit.clubs, Rank.ten)            
+
             card_risk = self.calc_risk(suit, card, others_unplayed_cards_of_suit, 
                                                        out_of_suits, remaining_players)
             #select a card with the lowest risk
@@ -221,10 +251,33 @@ class AdvancedPlayer(Player):
         if out_of_suit_player_num == 3: #avoid playing card that's off suit for others
             risk = 100
         elif num_of_larger_than_mine == 0:  #avoid playing card that's largest in a suit
-            risk = 100
+            risk = 99
         else:
             risk = num_of_smaller_than_mine/(3-out_of_suit_player_num) + weight * others_unplayed_num/(3-out_of_suit_player_num)
+            #risk = num_of_smaller_than_mine/(3-out_of_suit_player_num)
         return risk    
+    
+    def calc_card_strendth(self, suit, card, others_unplayed_cards_of_suit, out_of_suits, remaining_players):
+        """
+        """
+      
+        num_of_smaller_than_mine = len([ other for other in others_unplayed_cards_of_suit if other.rank < card.rank])
+        num_of_larger_than_mine = len([ other for other in others_unplayed_cards_of_suit if other.rank > card.rank])        
+        out_of_suit_player_num = 0
+        for player in remaining_players:
+            if out_of_suits[player][suit]:
+                out_of_suit_player_num = out_of_suit_player_num + 1
+        others_unplayed_num = len(others_unplayed_cards_of_suit)
+        weight = 0.01
+        self.say("num_of_smaller_than_mine:{}, out_of_suit_player_num:{}, others_unplayed_num:{}", num_of_smaller_than_mine, out_of_suit_player_num, others_unplayed_num)
+        if out_of_suit_player_num == 3: #avoid playing card that's off suit for others
+            risk = 100
+        elif num_of_larger_than_mine == 0:  #avoid playing card that's largest in a suit
+            risk = 99
+        else:
+            risk = num_of_smaller_than_mine/(3-out_of_suit_player_num) + weight * others_unplayed_num/(3-out_of_suit_player_num)
+            #risk = num_of_smaller_than_mine/(3-out_of_suit_player_num)
+        return risk       
     
     def calc_risk_for_off_suit(self, card, num_of_mine, num_of_smaller_than_mine , num_of_larger_than_mine, suit_risk):
         if suit_risk == -1: #others are off suit, avoid playing it
@@ -335,36 +388,65 @@ class AdvancedPlayer(Player):
         suit = min(my_suits, key=my_suits.get)
         cards = cards_with_suit(suit, my_hand)
         cards.sort()
-        return cards[0]                
+        return cards[0]         
+    
+        
+    def get_strongest_card(self, my_hand, cards_played, out_of_suits):
+        my_suits = {}
+        for card in my_hand:
+            if card.suit not in my_suits:
+                my_suits[card.suit] = 0
+        for suit in my_suits:    
+            my_cards = cards_with_suit(suit, my_hand)
+            others_unplayed_cards_of_suit = get_unplayed_cards_with_suit(cards_played, my_hand, suit)
+            
+            my_suits[suit] = self.calc_suit_strength(suit, my_cards, others_unplayed_cards_of_suit, 
+                               out_of_suits)
+            
+        #select strongest
+        suit = max(my_suits, key=my_suits.get)
+        cards = cards_with_suit(suit, my_hand)
+        cards.sort()
+        return cards[-1]       
         
     
         
     def check_shoot_the_moon(self, my_hand, cards_played, score_cards, out_of_suits):
         #check if shoot the moon is broken
+        if self.try_to_shoot == 2:
+            return
+        
         if self.try_to_shoot != 2:
             #if any other player has a score card, it's broken
             if (len(score_cards) == 1 and self.name not in score_cards) or len(score_cards) > 1:
                 self.try_to_shoot = 2
                 self.say("NOTE: Shoot the moon is broken:{}", score_cards)
-            
+                return
+        
+        #calculate suit strength
+        self.suit_strength = {}
+        my_suits = { card.suit:0 for card in my_hand }
+        for suit in my_suits:
+            suit_cards = cards_with_suit(suit, my_hand)
+            suit_cards.sort()
+            others_unplayed_cards_of_suit = get_unplayed_cards_with_suit(
+                cards_played, my_hand, 
+                suit)
+            suit_strenth = self.calc_suit_strength(suit, suit_cards, 
+                                              others_unplayed_cards_of_suit, out_of_suits)
+            self.say('suit {}, suit strenth: {}', suit, suit_strenth)                
+            self.suit_strength[suit] = suit_strenth            
+        
         #check if my cards are strong engough to shoot the moon
         if self.try_to_shoot == 0:
-            #get all my suits
-            my_suits = {}
-            for card in my_hand:
-                if card.suit not in my_suits:
-                    my_suits[card.suit] = 0
-                    
-            
             for suit in my_suits.keys():
                 suit_cards = cards_with_suit(suit, my_hand)
                 suit_cards.sort()
                 others_unplayed_cards_of_suit = get_unplayed_cards_with_suit(
                     cards_played, my_hand, 
                     suit)
-                suit_strenth = self.calc_suit_strength(suit, suit_cards, 
-                                                  others_unplayed_cards_of_suit, out_of_suits)
-                self.say('suit {}, suit strenth: {}', suit, suit_strenth)
+                suit_strenth = self.suit_strength[suit]                 
+                
                 if not others_unplayed_cards_of_suit:
                     my_suits[suit] = 1
                     self.say('check_shoot: {} is offsuit', suit)                 
@@ -372,7 +454,10 @@ class AdvancedPlayer(Player):
                 if suit == Suit.hearts:
                     if all(other.rank < suit_cards[-1].rank for other in others_unplayed_cards_of_suit) and suit_strenth > 0.6 and len(suit_cards) >= 4:
                         my_suits[suit] = 1
-                        self.say('check_shoot: {} suit_strength> threshold', suit)    
+                        self.say('check_shoot: {} suit_strength> threshold', suit) 
+                    if all(other.rank < suit_cards[-1].rank for other in others_unplayed_cards_of_suit) and suit_strenth > 0.8:
+                        my_suits[suit] = 1
+                        self.say('check_shoot: {} suit_strength> threshold', suit)                         
                 elif suit == Suit.spades:
                     if suit_strenth > 0.7:
                         my_suits[suit] = 1
@@ -405,31 +490,59 @@ class AdvancedPlayer(Player):
         lead the trick while try to shoot the moon
         '''
         self.say('NOTE: lead the trick')
-
         #get valid suits first
         valid_suits = {}
         for c in valid_cards:
             if c.suit not in valid_suits:
                 valid_suits[c.suit] = True
-        
-        risk = -1
-        decision = None
-        for suit in valid_suits.keys():
-            my_cards_of_suit = cards_with_suit(suit, valid_cards)
-            if not my_cards_of_suit:
-                continue
-            #select max card of the suit and calculate the risk
-            card = my_cards_of_suit[-1] 
-            others_unplayed_cards_of_suit = get_unplayed_cards_with_suit(
-                cards_played, my_hand, 
-                suit)
-            card_risk = self.calc_risk(suit, card, others_unplayed_cards_of_suit, 
-                                      out_of_suits, remaining_players)
-            #select a card with the lowest risk
-            self.say('shoot the moon. card: {}, risk: {}', card, card_risk)
-            if card_risk > risk:
-                risk = card_risk
-                decision = card              
+                
+        #if not big enough, start with smaller cards first
+        #d = {k:v for k,v in self.suit_strength.items() if k in valid_suits}
+        #if d:
+            #min_suit = min(d, key=d.get)
+            #if self.suit_strength[min_suit]< 0.7:
+                #return cards_with_suit(min_suit, valid_cards)[0]
+
+        safe_cards = []
+        for card in my_hand:
+            if is_others_off_suit(card.suit, out_of_suits, self.name):
+                safe_cards.append(card)
+            if is_larger_than_others(card, my_hand, cards_played):
+                safe_cards.append(card)
+                
+        if len(my_hand) - len(safe_cards) > 5 : #my hand is not strong enough
+            #start from second largest of weak suit
+            d = {k:v for k,v in self.suit_strength.items() if k in valid_suits}
+            if d:
+                min_suit = min(d, key=d.get)
+                cards = cards_with_suit(min_suit, valid_cards)
+                if len(cards) > 1:
+                    decision = cards_with_suit(min_suit, valid_cards)[-2]         
+                else:
+                    decision = cards_with_suit(min_suit, valid_cards)[-1]
+        else:
+            # start from lowest rank of safe cards to avoid exposing too early
+            if len(safe_cards) > 0:
+                decision = get_min_rank_card(safe_cards)
+            else:
+                risk = -1
+                decision = None
+                for suit in valid_suits.keys():
+                    my_cards_of_suit = cards_with_suit(suit, valid_cards)
+                    if not my_cards_of_suit:
+                        continue
+                    #select max card of the suit and calculate the risk
+                    card = my_cards_of_suit[-1] 
+                    others_unplayed_cards_of_suit = get_unplayed_cards_with_suit(
+                        cards_played, my_hand, 
+                        suit)
+                    card_risk = self.calc_risk(suit, card, others_unplayed_cards_of_suit, 
+                                              out_of_suits, remaining_players)
+                    #select a card with the lowest risk
+                    self.say('shoot the moon. card: {}, risk: {}', card, card_risk)
+                    if card_risk > risk:
+                        risk = card_risk
+                        decision = card              
 
         self.say('played card: {}', decision)
         return decision
@@ -551,3 +664,16 @@ class AdvancedPlayer(Player):
             total_larger += num_of_larger_than_mine        
         return total_smaller/(total_smaller+total_larger)    
     
+    
+if __name__ == "__main__":
+    player = AdvancedPlayer()
+    my_hand = [str_to_card('2D'), str_to_card('AD'),
+               str_to_card('5H'), str_to_card('4H'), str_to_card('AH'),
+               str_to_card('5S'), str_to_card('KS'),
+               str_to_card('3C'), str_to_card('AC'),
+               ]
+    cards_played = []
+    out_of_suits = {}
+    print(player.get_strongest_card(my_hand, cards_played, out_of_suits))
+    
+    print(min(my_hand))
