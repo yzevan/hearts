@@ -470,7 +470,8 @@ class AdvancedPlayer(Player):
                     self.say('check_shoot: {} is offsuit', suit)                 
 
                 if suit == Suit.hearts:
-                    if all(other.rank < suit_cards[-1].rank for other in others_unplayed_cards_of_suit) and suit_strenth > 0.6 and len(suit_cards) >= 4:
+                    #if all(other.rank < suit_cards[-1].rank for other in others_unplayed_cards_of_suit) and suit_strenth >= 0.5 and len(suit_cards) > 5:
+                    if suit_strenth >= 0.5 and len(suit_cards) > 5:
                         my_suits[suit] = 1
                         self.say('check_shoot: {} suit_strength> threshold', suit) 
                     if all(other.rank < suit_cards[-1].rank for other in others_unplayed_cards_of_suit) and suit_strenth > 0.8:
@@ -481,7 +482,7 @@ class AdvancedPlayer(Player):
                         my_suits[suit] = 1
                         self.say('check_shoot: {} suit_strength> threshold', suit)                           
                 else:
-                    if suit_strenth > 0.5:
+                    if all(other.rank < suit_cards[-1].rank for other in others_unplayed_cards_of_suit) and suit_strenth > 0.6:
                         my_suits[suit] = 1
                         self.say('check_shoot: {} suit_strength> threshold', suit)                       
                     
@@ -498,8 +499,10 @@ class AdvancedPlayer(Player):
                         #my_suits[suit] = 1
                         #self.say('check_shoot: {} has the largest and suit_number is {}', suit, len(suit_cards))
                     
-            #if all suits are strong enough
-            if all( my_suits[suit] == 1 for suit in my_suits):
+            #if all suits are strong enough, or only 1 diamond/clubs suit is weak
+            weak_suits = [suit for suit in my_suits if my_suits[suit] != 1]
+            if not weak_suits or (len(weak_suits)==1 and weak_suits[0] in [Suit.diamonds, Suit.clubs] ):
+            #if all( my_suits[suit] == 1 for suit in my_suits) or \               
                 self.try_to_shoot = 1
                 self.say('NOTE: Switch to shoot the moon. My hand:{}', my_hand)      
                 
@@ -528,7 +531,7 @@ class AdvancedPlayer(Player):
             if is_larger_than_others(card, my_hand, cards_played):
                 safe_cards.append(card)
                 
-        if len(my_hand) - len(safe_cards) > 5 : #my hand is not strong enough
+        if len(my_hand) - len(safe_cards) > 4 : #my hand is not strong enough
             #start from second largest of weak suit
             d = {k:v for k,v in self.suit_strength.items() if k in valid_suits}
             if d:
@@ -543,6 +546,12 @@ class AdvancedPlayer(Player):
             if len(safe_cards) > 0:
                 if len(safe_cards) > 1 and Card(Suit.spades, Rank.queen) in safe_cards: #avoid exposing QS early
                     safe_cards.remove(Card(Suit.spades, Rank.queen))
+                    
+                #avoid playing hearts first
+                hearts_safe_cards = cards_with_suit(Suit.hearts, safe_cards)
+                if hearts_safe_cards and len(hearts_safe_cards) < len(safe_cards):
+                    for c in hearts_safe_cards:
+                        safe_cards.remove(c)
                 decision = get_min_rank_card(safe_cards)
             else:
                 risk = -1
@@ -649,7 +658,7 @@ class AdvancedPlayer(Player):
     
     def calc_suit_strength(self, suit, my_cards, others_unplayed_cards_of_suit, out_of_suits):
         """
-        Calculate the strength of my suit by comparing top N cards of mines and other plaerers
+        Calculate the strength of my suit by comparing top N cards of mines and other players
         N is average card number of all other players
         """
         if len(my_cards) == 0:
