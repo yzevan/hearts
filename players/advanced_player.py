@@ -179,10 +179,17 @@ class AdvancedPlayer(Player):
                                 suit)
             #if I have QS/TC, and they are the smallest, play it first    
             if len(others_unplayed_cards_of_suit)>0 and (Card(Suit.spades, Rank.queen) in my_cards_of_suit) and all( [other.rank > Rank.queen for other in others_unplayed_cards_of_suit]):
-                return Card(Suit.spades, Rank.queen)
-            
+                return Card(Suit.spades, Rank.queen)            
             if len(others_unplayed_cards_of_suit)>0 and (Card(Suit.clubs, Rank.ten) in my_cards_of_suit) and all( [other.rank > Rank.ten for other in others_unplayed_cards_of_suit]):
-                return Card(Suit.clubs, Rank.ten)            
+                return Card(Suit.clubs, Rank.ten)   
+            
+            #if the only unplayed card is QS/TC, and my card is smaller than that, force it out
+            if len(others_unplayed_cards_of_suit)==1 and others_unplayed_cards_of_suit[0] == Card(Suit.spades, Rank.queen) and card.rank < Rank.queen:
+                return card
+            if len(others_unplayed_cards_of_suit)==1 and others_unplayed_cards_of_suit[0] == Card(Suit.clubs, Rank.ten) and card.rank < Rank.ten:
+                return card          
+        
+            
 
             card_risk = self.calc_risk(suit, card, others_unplayed_cards_of_suit, 
                                                        out_of_suits, remaining_players)
@@ -190,7 +197,15 @@ class AdvancedPlayer(Player):
             self.say('card: {}, risk: {}', card, card_risk)
             if card_risk < risk:
                 risk = card_risk
-                decision = card   
+                decision = card
+            elif card_risk == risk:
+                if Card(Suit.spades, Rank.queen) in others_unplayed_cards_of_suit and all([c.rank < Rank.queen for c in my_cards_of_suit] ):
+                    risk = card_risk
+                    decision = card
+                elif Card(Suit.clubs, Rank.ten) in others_unplayed_cards_of_suit and card.rank < Rank.ten:
+                    risk = card_risk
+                    decision = card
+                    
         return decision      
 
     
@@ -253,8 +268,8 @@ class AdvancedPlayer(Player):
         elif num_of_larger_than_mine == 0:  #avoid playing card that's largest in a suit
             risk = 99
         else:
-            risk = num_of_smaller_than_mine/(3-out_of_suit_player_num) + weight * others_unplayed_num/(3-out_of_suit_player_num)
-            #risk = num_of_smaller_than_mine/(3-out_of_suit_player_num)
+            #risk = num_of_smaller_than_mine/(3-out_of_suit_player_num) + weight * others_unplayed_num/(3-out_of_suit_player_num)
+            risk = num_of_smaller_than_mine/(3-out_of_suit_player_num)
         return risk    
     
     def calc_card_strendth(self, suit, card, others_unplayed_cards_of_suit, out_of_suits, remaining_players):
@@ -287,6 +302,8 @@ class AdvancedPlayer(Player):
             risk = card_risk  + suit_risk * 0.1
             if card.suit == Suit.hearts:
                 risk = risk * 1.1
+                if num_of_mine > 4:
+                    risk = risk * 1.2
         #risk = card.rank.value
         
         #if num_of_larger_than_mine == 0:    #I'm the largest
@@ -489,7 +506,7 @@ class AdvancedPlayer(Player):
         '''
         lead the trick while try to shoot the moon
         '''
-        self.say('NOTE: lead the trick')
+        self.say('NOTE: shoot - lead the trick')
         #get valid suits first
         valid_suits = {}
         for c in valid_cards:
@@ -555,7 +572,7 @@ class AdvancedPlayer(Player):
         '''
         cards_with_leading_suit = cards_with_suit(suit, cards)
         if cards_with_leading_suit:
-            self.say('NOTE: play the trick suit')                  
+            self.say('NOTE: shoot - play the trick suit')                  
             cards_with_suit_in_trick = cards_with_suit(suit, trick)
             max_rank_in_leading_suit = max([card.rank for card in cards_with_suit_in_trick])
             safe_cards = [card for card in cards if card.rank > max_rank_in_leading_suit]
@@ -589,7 +606,7 @@ class AdvancedPlayer(Player):
                         decision = cards[-1]
 
         else:  #off suit
-            self.say('NOTE: play off suit')
+            self.say('NOTE: shoot - play off suit')
             if contains_score_cards(trick):
                 self.say('Shoot the moon is broken')
                 self.try_to_shoot = 2                
