@@ -199,9 +199,10 @@ class AdvancedPlayer(Player):
                 risk = card_risk
                 decision = card
             elif card_risk == risk:
-                if Card(Suit.spades, Rank.queen) in others_unplayed_cards_of_suit and all([c.rank < Rank.queen for c in my_cards_of_suit] ):
-                    risk = card_risk
-                    decision = card
+                if Card(Suit.spades, Rank.queen) in others_unplayed_cards_of_suit:
+                    if all([c.rank < Rank.queen for c in my_cards_of_suit] ) or len([c for c in my_cards_of_suit if c.rank < Rank.queen]) >= len(others_unplayed_cards_of_suit):
+                        risk = card_risk
+                        decision = card
                 elif Card(Suit.clubs, Rank.ten) in others_unplayed_cards_of_suit and card.rank < Rank.ten:
                     risk = card_risk
                     decision = card
