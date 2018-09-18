@@ -523,6 +523,8 @@ class AdvancedPlayer(Player):
         else:
             # start from lowest rank of safe cards to avoid exposing too early
             if len(safe_cards) > 0:
+                if len(safe_cards) > 1 and Card(Suit.spades, Rank.queen) in safe_cards: #avoid exposing QS early
+                    safe_cards.remove(Card(Suit.spades, Rank.queen))
                 decision = get_min_rank_card(safe_cards)
             else:
                 risk = -1
