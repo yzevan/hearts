@@ -178,10 +178,10 @@ class AdvancedPlayer(Player):
                                 cards_played, my_hand, 
                                 suit)
             #if I have QS/TC, and they are the smallest, play it first    
-            if (Card(Suit.spades, Rank.queen) in my_cards_of_suit) and all( [other.rank > Rank.queen for other in others_unplayed_cards_of_suit]):
+            if len(others_unplayed_cards_of_suit)>0 and (Card(Suit.spades, Rank.queen) in my_cards_of_suit) and all( [other.rank > Rank.queen for other in others_unplayed_cards_of_suit]):
                 return Card(Suit.spades, Rank.queen)
             
-            if (Card(Suit.clubs, Rank.ten) in my_cards_of_suit) and all( [other.rank > Rank.ten for other in others_unplayed_cards_of_suit]):
+            if len(others_unplayed_cards_of_suit)>0 and (Card(Suit.clubs, Rank.ten) in my_cards_of_suit) and all( [other.rank > Rank.ten for other in others_unplayed_cards_of_suit]):
                 return Card(Suit.clubs, Rank.ten)            
 
             card_risk = self.calc_risk(suit, card, others_unplayed_cards_of_suit, 
