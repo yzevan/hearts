@@ -131,6 +131,20 @@ class AdvancedPlayer(Player):
         if len(valid_cards) == 1:
             return valid_cards[0]
         
+        #update out_of_suits
+        #check if palyers are out of suit after the turn card is played        
+        for suit in Suit:
+            found = False    
+            for rank in Rank:
+                card = Card(suit, rank)
+                if card not in cards_played and card not in my_hand:
+                    found = True
+                    break
+            if not found:  #if there's no card which is played or in my hand, that means all other players are out of the suit            
+                for player_name in out_of_suits:
+                    if player_name != self.name:
+                        out_of_suits[player_name][suit] = True
+                        
         self.check_shoot_the_moon(my_hand, cards_played, score_cards, out_of_suits)
                 
         if variables.enable_shoot_the_moon and self.try_to_shoot == 1:
@@ -148,7 +162,7 @@ class AdvancedPlayer(Player):
                     self.say('NOTE: play the trick suit')
                     decision = self.best_available(leading_suit, cards_with_leading_suit, trick, out_of_suits, remaining_players)
                 else:  #off suit
-                    decision = self.play_card_for_offsuit( valid_cards, my_hand, cards_played, is_spade_queen_played)                    
+                    decision = self.play_card_for_offsuit( valid_cards, my_hand, cards_played, is_spade_queen_played, out_of_suits)                    
                 
             else:   #lead the trick
                 self.say('NOTE: lead the trick')
@@ -161,14 +175,12 @@ class AdvancedPlayer(Player):
         return decision
 
     def lead_trick(self, valid_cards, out_of_suits, remaining_players, my_hand, cards_played):
-        valid_suits = {}
-        for c in valid_cards:
-            if c.suit not in valid_suits:
-                valid_suits[c.suit] = True
-    
+        suits = get_suits_from_cards(valid_cards)                        
+
+            
         risk = sys.maxsize
         decision = None
-        for suit in valid_suits.keys():
+        for suit in suits:
             my_cards_of_suit = cards_with_suit(suit, valid_cards)
             if not my_cards_of_suit:
                 continue
@@ -188,8 +200,20 @@ class AdvancedPlayer(Player):
                 return card
             if len(others_unplayed_cards_of_suit)==1 and others_unplayed_cards_of_suit[0] == Card(Suit.clubs, Rank.ten) and card.rank < Rank.ten:
                 return card          
-        
-            
+    
+
+        if len(suits) > 1 and Suit.spades in suits and Card(Suit.spades, Rank.queen) in my_hand:
+            suits.remove(Suit.spades)
+                
+        for suit in suits:
+            my_cards_of_suit = cards_with_suit(suit, valid_cards)
+            if not my_cards_of_suit:
+                continue
+            #select min card of the suit and calculate the risk
+            card = my_cards_of_suit[0] 
+            others_unplayed_cards_of_suit = get_unplayed_cards_with_suit(
+                                cards_played, my_hand, 
+                                suit)            
 
             card_risk = self.calc_risk(suit, card, others_unplayed_cards_of_suit, 
                                                        out_of_suits, remaining_players)
@@ -210,46 +234,120 @@ class AdvancedPlayer(Player):
         return decision      
 
     
-    def play_card_for_offsuit(self, cards, my_hand, cards_played, is_spade_queen_played):
+    def play_card_for_offsuit(self, cards, my_hand, cards_played, is_spade_queen_played, out_of_suits):
         self.say('NOTE: play off suit')
         if Card(Suit.spades, Rank.queen) in cards:
-            decision = Card(Suit.spades, Rank.queen)
-        elif Card(Suit.clubs, Rank.ten) in cards:
-            decision = Card(Suit.clubs, Rank.ten)
-        elif Card(Suit.spades, Rank.ace) in cards and not is_spade_queen_played:
-            decision = Card(Suit.spades, Rank.ace)
-        elif Card(Suit.spades, Rank.king) in cards and not is_spade_queen_played:
-            decision = Card(Suit.spades, Rank.king)
-        else:
-            valid_suits = {}
-            for c in cards:
-                if c.suit not in valid_suits:
-                    valid_suits[c.suit] = True
+            return Card(Suit.spades, Rank.queen)
+        if Card(Suit.clubs, Rank.ten) in cards:
+            return Card(Suit.clubs, Rank.ten)
+        if Card(Suit.spades, Rank.ace) in cards and not is_spade_queen_played:
+            return Card(Suit.spades, Rank.ace)
+        if Card(Suit.spades, Rank.king) in cards and not is_spade_queen_played:
+            return Card(Suit.spades, Rank.king)
         
-            risk = -1
-            decision = None
-            for suit in valid_suits.keys():
-                my_cards_of_suit = cards_with_suit(suit, cards)
-                if not my_cards_of_suit:
-                    continue
-                #select max card of the suit and calculate the risk
-                card = my_cards_of_suit[-1]
-                others_unplayed_cards_of_suit = get_unplayed_cards_with_suit(
-                                cards_played, my_hand, 
-                                suit)
-                num_of_mine = len(my_cards_of_suit)
-                num_of_smaller_than_mine = len([ other for other in others_unplayed_cards_of_suit if other.rank < card.rank])
-                num_of_larger_than_mine = len([ other for other in others_unplayed_cards_of_suit if other.rank > card.rank])
-                suit_risk = self.calc_suit_risk(my_cards_of_suit, others_unplayed_cards_of_suit)
-                self.say('suit {}, suit risk: {}', card.suit, suit_risk)
+        suits = get_suits_from_cards(cards)
+        if len(suits) == 1:
+            return cards_with_suit(suits[0], cards)[-1]           
+        
+        #remove the suits that others don't have
+        suits = [ suit for suit in suits if not is_others_off_suit(suit, out_of_suits, self.name)]
+        if not suits:   #all my valid cards are offsuit, play any one
+            return cards[0]                                                        
+        
+        # candidate cards are max cards of each suits
+        candidate_cards = [ cards_with_suit(suit, cards)[-1] for suit in suits ]
+        suit_safe_cards = {}
+        suit_strength = {}
+        suit_cards_cnt = {}
+        card_strength = {}
+        smaller_than_mine = {}
+        larger_than_mine = {}
+        for card in candidate_cards:
+            my_cards_of_suit = cards_with_suit(card.suit, cards)
+            others_unplayed_cards_of_suit = get_unplayed_cards_with_suit(cards_played, my_hand, card.suit)
+            safe_card_num = len([ card for card in my_cards_of_suit if card < min(others_unplayed_cards_of_suit)])
+            suit_safe_cards[card] = safe_card_num
+            
+            suit_strength[card] = self.calc_suit_strength(card.suit, my_cards_of_suit, others_unplayed_cards_of_suit, out_of_suits)
+            num_of_mine = len(my_cards_of_suit)
+            suit_cards_cnt[card] = num_of_mine
+            
+            num_of_smaller_than_mine = len([ other for other in others_unplayed_cards_of_suit if other.rank < card.rank])
+            smaller_than_mine[card] = num_of_smaller_than_mine
+            
+            num_of_larger_than_mine = len([ other for other in others_unplayed_cards_of_suit if other.rank > card.rank])
+            larger_than_mine[card] = num_of_larger_than_mine
+            
+            suit_risk = self.calc_suit_risk(my_cards_of_suit, others_unplayed_cards_of_suit)
+            self.say('suit {}, suit risk: {}', card.suit, suit_risk)            
+            card_risk = self.calc_risk_for_off_suit(card, num_of_mine, num_of_smaller_than_mine , num_of_larger_than_mine, suit_risk)
+            self.say('card: {}, risk: {}', card, card_risk)
+            card_strength[card] = card_risk
+            
+        #select the suit with least safe cards 
+        min_safe_card_num = suit_safe_cards[min(suit_safe_cards, key=suit_safe_cards.get)]
+        candidate_cards = [ card for card in candidate_cards if suit_safe_cards[card]==min_safe_card_num]
+        if len(candidate_cards) == 1:
+            return candidate_cards[0]
+        
                 
-                card_risk = self.calc_risk_for_off_suit(card, num_of_mine, num_of_smaller_than_mine , num_of_larger_than_mine, suit_risk)
-                self.say('card: {}, risk: {}', card, card_risk)
-                #select a card with the lowest risk                    
-                if card_risk > risk:
-                    risk = card_risk
-                    decision = card    
-        return decision
+    
+        #select the suit I have 1 card and it's not the smallest
+        
+        #select max card strength
+        card_strength = {k:v for k,v in card_strength.items() if k in candidate_cards}
+        max_card_strength = card_strength[max((card_strength), key=card_strength.get)]
+        candidate_cards = [ card for card in candidate_cards if card_strength[card]==max_card_strength]
+        if len(candidate_cards) == 1:
+            return candidate_cards[0]
+        
+        
+        self.say('candidate cards: {}', candidate_cards)
+        #select the suit with max strength 
+        suit_strength = {k:v for k,v in suit_strength.items() if k in candidate_cards}
+        max_suit_strength = suit_strength[max(suit_strength, key=suit_strength.get)]
+        candidate_cards = [ card for card in candidate_cards if suit_strength[card]==max_suit_strength]
+        if len(candidate_cards) == 1:
+            return candidate_cards[0]
+        
+        #play hearts card
+        hearts_card = [ card for card in candidate_cards if card.suit == Suit.hearts]
+        if hearts_card:
+            return hearts_card[0]
+        
+        #play the suit with min cards
+        suit_cards_cnt = {k:v for k,v in suit_cards_cnt.items() if k in candidate_cards}
+        min_suit_cnt = suit_cards_cnt[min(suit_cards_cnt, key=suit_cards_cnt.get)]
+        candidate_cards = [ card for card in candidate_cards if suit_cards_cnt[card]==min_suit_cnt]
+        return candidate_cards[0]           
+            
+                
+            
+        
+        #risk = -1
+        #decision = None
+        #for suit in suits:
+            #my_cards_of_suit = cards_with_suit(suit, cards)
+            #if not my_cards_of_suit:
+                #continue
+            ##select max card of the suit and calculate the risk
+            #card = my_cards_of_suit[-1]
+            #others_unplayed_cards_of_suit = get_unplayed_cards_with_suit(
+                            #cards_played, my_hand, 
+                            #suit)
+            #num_of_mine = len(my_cards_of_suit)
+            #num_of_smaller_than_mine = len([ other for other in others_unplayed_cards_of_suit if other.rank < card.rank])
+            #num_of_larger_than_mine = len([ other for other in others_unplayed_cards_of_suit if other.rank > card.rank])
+            #suit_risk = self.calc_suit_risk(my_cards_of_suit, others_unplayed_cards_of_suit)
+            #self.say('suit {}, suit risk: {}', card.suit, suit_risk)
+            
+            #card_risk = self.calc_risk_for_off_suit(card, num_of_mine, num_of_smaller_than_mine , num_of_larger_than_mine, suit_risk)
+            #self.say('card: {}, risk: {}', card, card_risk)
+            ##select a card with the lowest risk                    
+            #if card_risk > risk:
+                #risk = card_risk
+                #decision = card    
+        #return decision
     
     def calc_risk(self, suit, card, others_unplayed_cards_of_suit, out_of_suits, remaining_players):
         """
@@ -273,7 +371,7 @@ class AdvancedPlayer(Player):
             risk = num_of_smaller_than_mine/(3-out_of_suit_player_num)
         return risk    
     
-    def calc_card_strendth(self, suit, card, others_unplayed_cards_of_suit, out_of_suits, remaining_players):
+    def calc_card_strength(self, suit, card, others_unplayed_cards_of_suit, out_of_suits, remaining_players):
         """
         """
       
@@ -620,7 +718,7 @@ class AdvancedPlayer(Player):
             if contains_score_cards(trick):
                 self.say('Shoot the moon is broken')
                 self.try_to_shoot = 2                
-                decision = self.play_card_for_offsuit(cards, my_hand, cards_played, is_spade_queen_played)
+                decision = self.play_card_for_offsuit(cards, my_hand, cards_played, is_spade_queen_played, out_of_suits)
             else:                
                 valid_suits = {}
                 for c in cards:
@@ -649,11 +747,14 @@ class AdvancedPlayer(Player):
                 if card == Card(Suit.spades, Rank.queen) or card.suit == Suit.hearts:
                     self.say('Shoot the moon is broken')
                     self.try_to_shoot = 2                
-                    decision = self.play_card_for_offsuit(cards, my_hand, cards_played, is_spade_queen_played)                    
+                    decision = self.play_card_for_offsuit(cards, my_hand, cards_played, is_spade_queen_played, out_of_suits)                    
                 else:
                     decision = card            
 
         return decision            
+    
+    
+
     
     
     def calc_suit_strength(self, suit, my_cards, others_unplayed_cards_of_suit, out_of_suits):
@@ -706,3 +807,4 @@ if __name__ == "__main__":
     print(player.get_strongest_card(my_hand, cards_played, out_of_suits))
     
     print(min(my_hand))
+    

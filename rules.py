@@ -177,10 +177,24 @@ def get_min_rank_card(cards):
             min_rank = card.rank
             min_card = card
     return min_card
+
+def get_suits_from_cards(cards):
+    """
+    return suit list from cards
+    """
+    suits = []
+    for card in cards:
+        if card.suit not in suits:
+            suits.append(card.suit)
+            
+    return suits
+    
             
 
 
 
 if __name__ == "__main__":
-    pass
+    cards = [Card(Suit.spades, Rank.two), Card(Suit.hearts, Rank.three), Card(Suit.spades, Rank.ten)]
+    print(get_suits_from_cards(cards))
+    
         
